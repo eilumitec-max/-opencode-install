@@ -78,9 +78,18 @@ export default function TenantAppPage() {
             {step === 'type' || step === 'cart' ? (
               <div className="flex items-center gap-3">
                 <button onClick={goBack} className="p-2 -ml-2 rounded-lg hover:bg-dark-50 transition-colors"><ChevronLeft className="w-5 h-5 text-dark-600" /></button>
-                <div className="flex items-center gap-2" style={{ color: tenant.primaryColor }}>
-                  <span className="text-lg">{tenant.logo}</span>
-                  <span className="font-bold text-dark-900 text-lg">{tenant.name}</span>
+                <div className="flex items-center gap-3" style={{ color: tenant.primaryColor }}>
+                  <span className="text-2xl">{tenant.logo}</span>
+                  <span className="font-bold text-2xl" style={{ color: tenant.primaryColor }}>
+                    {tenant.name.split('').map((ch, i) => (
+                      <motion.span
+                        key={i}
+                        initial={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
+                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                        transition={{ delay: i * 0.05, duration: 0.3, ease: 'easeOut' }}
+                      >{ch}</motion.span>
+                    ))}
+                  </span>
                 </div>
               </div>
             ) : (
