@@ -31,6 +31,7 @@ export default function TenantAppPage() {
   const [customerPhone, setCustomerPhone] = useState('')
   const [order, setOrder] = useState<OrderState>({ type: '', size: '', base: '', toppings: [], fruits: [], extras: [] })
   const [history, setHistory] = useState<Step[]>([])
+  const [stepMessages, setStepMessages] = useState<Record<string, string>>({})
 
   useEffect(() => { const t = getTenantBySlug(slug); if (t) setTenant(t) }, [slug])
 
@@ -38,6 +39,9 @@ export default function TenantAppPage() {
     if (!tenant) return
     fetch(`/api/banner?tenantId=${tenant.id}`).then(r => r.json()).then(d => {
       if (d.banner) setTenant(prev => prev ? { ...prev, banner: d.banner } : prev)
+      if (d.stepMessages && Object.keys(d.stepMessages).length > 0) {
+        setStepMessages(d.stepMessages)
+      }
     }).catch(() => {})
   }, [tenant?.id])
 
@@ -52,6 +56,7 @@ export default function TenantAppPage() {
   }
   const orderTotal = getPrice()
   const deliveryFee = tenant?.deliveryFee || 0
+  const sm = (key: string, fallback: string) => stepMessages[key] || fallback
 
   if (!tenant) return (
     <div className="min-h-screen bg-dark-950 flex items-center justify-center">
@@ -122,8 +127,9 @@ export default function TenantAppPage() {
           <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 overflow-y-auto p-4 sm:p-6">
             {step === 'type' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold font-display text-dark-900">Escolha sua base</h2>
-                <p className="text-sm text-dark-500">Selecione 1 opção para começar</p>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200">
+                  <p className="text-sm font-semibold text-primary-800">{sm('type', '🍇 Escolha 1 base para começar seu pedido!')}</p>
+                </div>
                 <div className="space-y-2">
                   {typeOptions.map(opt => (
                     <motion.button key={opt} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
@@ -139,8 +145,9 @@ export default function TenantAppPage() {
             )}
             {step === 'size' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold font-display text-dark-900">Qual o tamanho?</h2>
-                <p className="text-sm text-dark-500">Selecione 1 tamanho</p>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200">
+                  <p className="text-sm font-semibold text-primary-800">{sm('size', '🥤 Escolha 1 tamanho — você tem direito a 4 acompanhamentos grátis!')}</p>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   {sizeOptions.map((opt, i) => (
                     <motion.button key={opt} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -159,8 +166,9 @@ export default function TenantAppPage() {
             )}
             {step === 'toppings' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold font-display text-dark-900">Coberturas <span className="text-sm font-normal text-dark-500">(R$ 1,50 cada)</span></h2>
-                <p className="text-sm text-dark-500">Você pode adicionar quantas coberturas quiser</p>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                  <p className="text-sm font-semibold text-amber-800">{sm('toppings', '🍫 Você tem direito a 2 coberturas grátis! (R$ 1,50 cada adicional)')}</p>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {toppingsList.map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -173,8 +181,9 @@ export default function TenantAppPage() {
             )}
             {step === 'fruits' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold font-display text-dark-900">Frutas <span className="text-sm font-normal text-dark-500">(Grátis)</span></h2>
-                <p className="text-sm text-dark-500">Escolha até 3 frutas grátis</p>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                  <p className="text-sm font-semibold text-green-800">{sm('fruits', '🍓 Você tem direito a 3 frutas grátis! Escolha as suas favoritas')}</p>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   {fruitsList.map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -189,8 +198,9 @@ export default function TenantAppPage() {
             )}
             {step === 'extras' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold font-display text-dark-900">Complementos <span className="text-sm font-normal text-dark-500">(R$ 2,00 cada)</span></h2>
-                <p className="text-sm text-dark-500">Adicione complementos extras ao seu pedido</p>
+                <div className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200">
+                  <p className="text-sm font-semibold text-purple-800">{sm('extras', '🥜 Adicione quantos complementos quiser! (R$ 2,00 cada)')}</p>
+                </div>
                 <div className="space-y-2">
                   {extrasList.map(item => (
                     <motion.button key={item} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
