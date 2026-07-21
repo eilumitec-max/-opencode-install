@@ -262,7 +262,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
               onClick={handleRegister}
               className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all disabled:opacity-40"
               style={{ backgroundColor: tenant.primaryColor }} disabled={!customerName.trim()}>
-              Cadastrar <ArrowRight className="w-5 h-5 inline" />
+              Começar <ArrowRight className="w-5 h-5 inline" />
             </motion.button>
           </motion.div>
         </div>
