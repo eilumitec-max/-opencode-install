@@ -16,3 +16,21 @@ self.addEventListener('fetch', e => {
     caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/')))
   )
 })
+
+self.addEventListener('push', e => {
+  if (!e.data) return
+  const data = e.data.json()
+  self.registration.showNotification(data.title, {
+    body: data.body,
+    icon: data.icon || '/icons/icon-192.svg',
+    badge: '/icons/icon-192.svg',
+    data: { url: data.url || '/' },
+    vibrate: [200, 100, 200],
+  })
+})
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close()
+  const url = e.notification.data?.url || '/'
+  e.waitUntil(clients.openWindow(url))
+})

@@ -563,6 +563,32 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
     return () => clearInterval(interval)
   }, [tenant.id])
 
+  useEffect(() => {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return
+    if (Notification.permission === 'denied') return
+    const sub = async () => {
+      if (Notification.permission === 'granted' || (await Notification.requestPermission()) === 'granted') {
+        const raw = localStorage.getItem('goacai_tracking')
+        if (!raw) return
+        const { phone } = JSON.parse(raw)
+        if (!phone) return
+        const registration = await navigator.serviceWorker.ready
+        const existing = await registration.pushManager.getSubscription()
+        if (existing) return
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: 'BDsAxsonMQdBCRNRaWQrHQOjg2FdJMqkeo96mz-jINy6tScA-ew_qYiVaaL9_XU7t6v--WTkXtIpCnfAoJd8Fso',
+        })
+        await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, subscription }),
+        })
+      }
+    }
+    sub()
+  }, [])
+
   const handleBuyAgain = () => {
     localStorage.removeItem('goacai_tracking')
     window.location.reload()

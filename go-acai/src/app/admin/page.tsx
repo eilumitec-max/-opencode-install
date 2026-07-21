@@ -157,12 +157,24 @@ function DashboardTab({ tenant }: { tenant: Tenant }) {
 
   const handleStatus = async (id: string, status: string) => {
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status: status as any } : o))
+    const order = orders.find(o => o.id === id)
     await updateOrderStatus(id, status, tenant.id)
     playStatusChange(status)
     localStorage.setItem('goacai_tracking', JSON.stringify({
-      orderId: id, status, customer: orders.find(o => o.id === id)?.customer || '',
+      orderId: id, status, customer: order?.customer || '',
       updatedAt: Date.now()
     }))
+    if (order?.phone) {
+      fetch('/api/push/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: order.phone,
+          title: 'Pedido Atualizado!',
+          body: `${order.customer}, seu pedido ${id} agora está: ${status === 'preparing' ? 'Preparando' : status === 'shipped' ? 'Saiu pra entrega' : status === 'delivered' ? 'Entregue!' : status === 'cancelled' ? 'Cancelado' : 'Pendente'}`,
+          url: `/app/${tenant.slug}`,
+        }),
+      })
+    }
   }
 
   const totalSales = orders.filter(o => o.status === 'delivered').length
@@ -513,7 +525,7 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
     cancelled: null,
   }
 
-  const updateStatus = (id: string, newStatus: TenantOrder['status']) => {
+  const updateStatus = async (id: string, newStatus: TenantOrder['status']) => {
     setOrders(prev => {
       const updated = prev.map(o => o.id === id ? { ...o, status: newStatus } : o)
       const order = updated.find(o => o.id === id)
@@ -525,8 +537,20 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
       }
       return updated
     })
-    updateOrderStatus(id, newStatus, tenant.id)
+    await updateOrderStatus(id, newStatus, tenant.id)
     playStatusChange(newStatus)
+    const order = orders.find(o => o.id === id)
+    if (order?.phone) {
+      fetch('/api/push/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: order.phone,
+          title: 'Pedido Atualizado!',
+          body: `${order.customer}, seu pedido agora está: ${newStatus === 'preparing' ? 'Preparando' : newStatus === 'shipped' ? 'Saiu pra entrega' : newStatus === 'delivered' ? 'Entregue!' : newStatus === 'cancelled' ? 'Cancelado' : 'Pendente'}`,
+          url: `/app/${tenant.slug}`,
+        }),
+      })
+    }
   }
 
   return (
