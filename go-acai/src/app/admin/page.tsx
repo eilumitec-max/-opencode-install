@@ -140,8 +140,19 @@ function DashboardTab({ tenant }: { tenant: Tenant }) {
       setPrevActiveCount(activeCount)
     }
     fetchOrders()
-    const interval = setInterval(fetchOrders, 5000)
-    return () => clearInterval(interval)
+
+    const channel = supabase.channel('orders_realtime')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders', filter: `tenant_id=eq.${tenant.id}` },
+        () => { fetchOrders() }
+      )
+      .subscribe()
+
+    const interval = setInterval(fetchOrders, 30000)
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
   }, [tenant.id])
 
   const handleStatus = async (id: string, status: string) => {
