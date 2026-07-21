@@ -34,6 +34,13 @@ export default function TenantAppPage() {
 
   useEffect(() => { const t = getTenantBySlug(slug); if (t) setTenant(t) }, [slug])
 
+  useEffect(() => {
+    if (!tenant) return
+    fetch(`/api/banner?tenantId=${tenant.id}`).then(r => r.json()).then(d => {
+      if (d.banner) setTenant(prev => prev ? { ...prev, banner: d.banner } : prev)
+    }).catch(() => {})
+  }, [tenant?.id])
+
   const goTo = (next: Step) => { setHistory(prev => [...prev, step]); setStep(next) }
   const goBack = () => {
     if (history.length > 0) { const prev = history[history.length - 1]; setHistory(h => h.slice(0, -1)); setStep(prev) }
@@ -90,6 +97,14 @@ export default function TenantAppPage() {
           {step === 'type' && deliveryFee === 0 && (
             <div className="px-4 pb-3">
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary-50 text-secondary-700 text-xs"><Package className="w-4 h-4" /><span>Entrega grátis • Pedido mínimo R$ {tenant.minOrder.toFixed(2).replace('.', ',')}</span></div>
+            </div>
+          )}
+          {tenant.banner && !['cart', 'checkout', 'tracking'].includes(step) && (
+            <div className="px-4 pb-3">
+              <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200 text-primary-800 text-xs leading-relaxed font-medium">
+                <span className="text-base shrink-0 mt-0.5">💬</span>
+                <span>{tenant.banner}</span>
+              </div>
             </div>
           )}
         </div>

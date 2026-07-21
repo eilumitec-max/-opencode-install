@@ -665,6 +665,8 @@ function AnalyticsTab({ tenant }: { tenant: Tenant }) {
 }
 
 function SettingsTab({ tenant }: { tenant: Tenant }) {
+  const [banner, setBanner] = useState(tenant.banner || '')
+  const [bannerMsg, setBannerMsg] = useState('')
   const [workingDays, setWorkingDays] = useState([
     { day: 'Segunda-feira', open: true, start: '09:00', end: '22:00' },
     { day: 'Terça-feira', open: true, start: '09:00', end: '22:00' },
@@ -678,6 +680,12 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
   const [dbCount, setDbCount] = useState(0)
   const [lastOrders, setLastOrders] = useState<any[]>([])
   const [testResult, setTestResult] = useState('')
+
+  useEffect(() => {
+    fetch(`/api/banner?tenantId=${tenant.id}`).then(r => r.json()).then(d => {
+      if (d.banner) setBanner(d.banner)
+    }).catch(() => {})
+  }, [tenant.id])
 
   useEffect(() => {
     (async () => {
@@ -763,6 +771,21 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             <div><label className="text-xs text-dark-400 block mb-1">WhatsApp</label><input className="input-dark" defaultValue={tenant.whatsapp} /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Mínimo p/ Pedido (R$)</label><input className="input-dark" defaultValue={tenant.minOrder.toFixed(2).replace('.', ',')} /></div>
             <div className="sm:col-span-2"><label className="text-xs text-dark-400 block mb-1">Endereço</label><input className="input-dark w-full" defaultValue={tenant.address} /></div>
+            <div className="sm:col-span-2">
+              <label className="text-xs text-dark-400 block mb-1">Mensagem / Banner do App</label>
+              <div className="flex gap-2">
+                <input className="input-dark flex-1" value={banner} onChange={e => setBanner(e.target.value)} placeholder="Ex: 🎉 Cliente novo? Cupom BEMVINDO e ganhe 10% off!" />
+                <button onClick={async () => {
+                  setBannerMsg('Salvando...')
+                  const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: tenant.id, banner }) })
+                  if (r.ok) setBannerMsg('✅ Salvo!')
+                  else { const d = await r.json(); setBannerMsg(`Erro: ${d.error}`) }
+                  setTimeout(() => setBannerMsg(''), 3000)
+                }} className="px-4 py-2 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors text-sm shrink-0">Salvar</button>
+              </div>
+              {bannerMsg && <p className="text-xs text-dark-400 mt-1">{bannerMsg}</p>}
+              <p className="text-xs text-dark-500 mt-1">Essa mensagem aparece no topo do app do cliente.</p>
+            </div>
           </div>
         </div>
 
