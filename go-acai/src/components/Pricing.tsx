@@ -116,7 +116,7 @@ export function Pricing() {
               href="#comparativo"
               className="btn-outline"
             >
-              Ver Comparativo GO AÇAÍ vs WhatsApp vs iFood
+              Ver Comparativo GO AÇAÍ vs WhatsApp
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
