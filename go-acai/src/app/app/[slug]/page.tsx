@@ -285,6 +285,12 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
               onKeyDown={e => { if (e.key === 'Enter') lookupCustomer((e.target as HTMLInputElement).value) }}
               className="w-full bg-dark-50 border-2 border-dark-200 rounded-xl px-5 py-4 text-center text-lg text-dark-900 outline-none focus:border-primary-500 transition-all placeholder:text-dark-400"
               placeholder="(11) 99999-8888" autoFocus />
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              onClick={() => lookupCustomer(customerPhone)}
+              className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all disabled:opacity-40"
+              style={{ backgroundColor: tenant.primaryColor }} disabled={customerPhone.replace(/\D/g, '').length < 10}>
+              Prosseguir <ArrowRight className="w-5 h-5 inline" />
+            </motion.button>
             {looking && (
               <div className="flex items-center justify-center gap-2 text-sm text-primary-500">
                 <div className="w-4 h-4 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
