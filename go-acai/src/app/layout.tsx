@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
+import InstallPrompt from '@/components/InstallPrompt'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -82,6 +83,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         {children}
+        <InstallPrompt />
       </body>
     </html>
   )

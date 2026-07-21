@@ -98,7 +98,8 @@ export default function TenantAppPage() {
           <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 overflow-y-auto p-4 sm:p-6">
             {step === 'type' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold font-display text-dark-900">Escolha a base</h2>
+                <h2 className="text-lg font-bold font-display text-dark-900">Escolha sua base</h2>
+                <p className="text-sm text-dark-500">Selecione 1 opção para começar</p>
                 <div className="space-y-2">
                   {typeOptions.map(opt => (
                     <motion.button key={opt} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
@@ -115,6 +116,7 @@ export default function TenantAppPage() {
             {step === 'size' && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold font-display text-dark-900">Qual o tamanho?</h2>
+                <p className="text-sm text-dark-500">Selecione 1 tamanho</p>
                 <div className="grid grid-cols-2 gap-3">
                   {sizeOptions.map((opt, i) => (
                     <motion.button key={opt} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -134,6 +136,7 @@ export default function TenantAppPage() {
             {step === 'toppings' && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold font-display text-dark-900">Coberturas <span className="text-sm font-normal text-dark-500">(R$ 1,50 cada)</span></h2>
+                <p className="text-sm text-dark-500">Você pode adicionar quantas coberturas quiser</p>
                 <div className="flex flex-wrap gap-2">
                   {toppingsList.map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -147,6 +150,7 @@ export default function TenantAppPage() {
             {step === 'fruits' && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold font-display text-dark-900">Frutas <span className="text-sm font-normal text-dark-500">(Grátis)</span></h2>
+                <p className="text-sm text-dark-500">Escolha até 3 frutas grátis</p>
                 <div className="grid grid-cols-2 gap-2">
                   {fruitsList.map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -162,6 +166,7 @@ export default function TenantAppPage() {
             {step === 'extras' && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold font-display text-dark-900">Complementos <span className="text-sm font-normal text-dark-500">(R$ 2,00 cada)</span></h2>
+                <p className="text-sm text-dark-500">Adicione complementos extras ao seu pedido</p>
                 <div className="space-y-2">
                   {extrasList.map(item => (
                     <motion.button key={item} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
@@ -181,6 +186,7 @@ export default function TenantAppPage() {
             {step === 'cart' && (
               <div className="space-y-4">
                 <h2 className="text-lg font-bold font-display text-dark-900">Resumo do Pedido</h2>
+                <p className="text-sm text-dark-500">Confira seu pedido antes de finalizar</p>
                 <div className="space-y-3 rounded-2xl p-4" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
                   <div className="flex justify-between items-center"><span className="font-semibold text-dark-900">{order.size} - {order.base}</span><span className="font-bold" style={{ color: tenant.primaryColor }}>{sizePrices[order.size] || 'R$ 19,90'}</span></div>
                   {order.toppings.length > 0 && <div className="flex justify-between text-sm"><span className="text-dark-500">Coberturas ({order.toppings.length}x)</span><span className="text-dark-500">+R$ {(order.toppings.length * 1.5).toFixed(2).replace('.', ',')}</span></div>}
