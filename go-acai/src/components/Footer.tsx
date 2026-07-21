@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ShoppingBag, Facebook, Instagram, WhatsApp, Mail, MapPin, Phone, ArrowRight, ArrowUp } from 'lucide-react'
+import { ShoppingBag, Facebook, Instagram, MessageSquare, Mail, MapPin, Phone, ArrowRight, ArrowUp } from 'lucide-react'
 
 const footerLinks = {
   produto: [
@@ -36,7 +36,7 @@ const footerLinks = {
 const socialLinks = [
   { icon: Instagram, href: 'https://instagram.com/goacai', label: 'Instagram' },
   { icon: Facebook, href: 'https://facebook.com/goacai', label: 'Facebook' },
-  { icon: WhatsApp, href: 'https://wa.me/5511999999999', label: 'WhatsApp' },
+  { icon: MessageSquare, href: 'https://wa.me/5511999999999', label: 'WhatsApp' },
   { icon: Mail, href: 'mailto:oi@goacai.com.br', label: 'E-mail' },
 ]
 
@@ -165,7 +165,7 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center gap-3">
-                <WhatsApp className="w-5 h-5 text-secondary-400 flex-shrink-0" />
+                <MessageSquare className="w-5 h-5 text-secondary-400 flex-shrink-0" />
                 <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="hover:text-secondary-400 transition-colors">
                   WhatsApp Comercial
                 </a>

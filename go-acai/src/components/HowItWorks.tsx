@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, CheckCircle, Smartphone, Utensils, Coffee, Heart, Star, Plus, CreditCard, Package, Zap, ShoppingBag, Users, Layers, Tag, BarChart3, Settings, MapPin, Clock, Megaphone, LayoutDashboard, QrCode, Palette, Shield, Globe, Monitor, Tablet } from 'lucide-react'
+import { ArrowRight, CheckCircle, Smartphone, Utensils, Coffee, Heart, Star, Plus, CreditCard, Package, Zap, ShoppingBag, Users, Layers, Tag, BarChart3, Settings, MapPin, Clock, Megaphone, LayoutDashboard, QrCode, Palette, Shield, Globe, Monitor, Tablet, Truck } from 'lucide-react'
 
 const appFlow = [
   {

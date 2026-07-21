@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Check, X, HelpCircle, AlertCircle } from 'lucide-react'
+import { Check, X, HelpCircle, AlertCircle, ArrowRight } from 'lucide-react'
 
 const whatsappComparison = [
   { feature: 'Pedidos organizados', goacai: true, whatsapp: false },

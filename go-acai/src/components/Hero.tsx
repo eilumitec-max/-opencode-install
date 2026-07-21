@@ -61,14 +61,14 @@ export function Hero() {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Link
-                href="#cadastro"
+                href="/signup"
                 className="btn-primary group text-lg px-8 py-4"
               >
                 Começar Teste Grátis 7 Dias
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
               </Link>
               <Link
-                href="#demo"
+                href="/demo"
                 className="btn-outline text-lg px-8 py-4"
               >
                 Ver Demonstração

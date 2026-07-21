@@ -85,7 +85,7 @@ export function Pricing() {
             </div>
 
             <Link
-              href="#cadastro"
+              href="/signup"
               className="btn-primary w-full py-4 text-lg mb-8 group"
             >
               Começar Teste Grátis 7 Dias

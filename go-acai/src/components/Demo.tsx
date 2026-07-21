@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Smartphone, Monitor, Tablet, CheckCircle } from 'lucide-react'
+import { ArrowRight, Smartphone, Monitor, Tablet, CheckCircle, ShoppingBag } from 'lucide-react'
 
 const demoScreens = [
   {
@@ -312,10 +314,10 @@ export function Demo() {
             transition={{ delay: 0.5 }}
             className="mt-12 text-center"
           >
-            <button className="btn-primary text-lg px-10 py-4">
-              Testar Demo Interativa
+            <Link href="/demo" className="btn-primary text-lg px-10 py-4 inline-flex items-center gap-2">
+              Abrir App Completo
               <ArrowRight className="w-5 h-5" />
-            </button>
+            </Link>
             <p className="mt-4 text-sm text-dark-500">Abre em nova aba • Dados fictícios • Reset a cada sessão</p>
           </motion.div>
         </div>

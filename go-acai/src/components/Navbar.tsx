@@ -64,14 +64,20 @@ export function Navbar() {
 
           <div className="hidden lg:flex items-center gap-4">
             <Link
-              href="#login"
+              href="/login"
               className="btn-secondary px-4 py-2 text-sm"
             >
               <LogIn className="w-4 h-4" aria-hidden="true" />
               Entrar
             </Link>
             <Link
-              href="#cadastro"
+              href="/admin"
+              className="text-sm font-medium text-dark-400 hover:text-primary-500 transition-colors px-3 py-2"
+            >
+              Admin
+            </Link>
+            <Link
+              href="/signup"
               className="btn-primary px-6 py-2 text-sm"
             >
               <UserPlus className="w-4 h-4" aria-hidden="true" />
@@ -113,7 +119,7 @@ export function Navbar() {
                 ))}
                 <div className="flex flex-col gap-3 pt-4 border-t border-primary-100">
                   <Link
-                    href="#login"
+                    href="/login"
                     className="btn-secondary text-center"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -121,7 +127,7 @@ export function Navbar() {
                     Entrar
                   </Link>
                   <Link
-                    href="#cadastro"
+                    href="/signup"
                     className="btn-primary text-center"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

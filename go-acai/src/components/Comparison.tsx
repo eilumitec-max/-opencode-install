@@ -63,7 +63,7 @@ const comparison = [
   },
 ]
 
-function ComparisonIcon({ value }: { value: boolean | 'parcial' }) {
+function ComparisonIcon({ value }: { value: boolean | 'parcial' | string }) {
   if (value === true) {
     return <Check className="w-5 h-5 text-secondary-500" />
   }
