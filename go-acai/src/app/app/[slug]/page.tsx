@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus } from 'lucide-react'
+import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, Download } from 'lucide-react'
 import { getTenantBySlug, type Tenant, type TenantProduct } from '@/lib/tenants'
 import { supabase } from '@/lib/supabase'
 import { insertOrder, upsertCustomer, fetchCustomerByPhone } from '@/lib/supabase-queries'
@@ -22,6 +22,14 @@ const toppingsList = ['Leite Condensado', 'Nutella', 'Chocolate', 'Caramelo', 'M
 const fruitsList = ['Banana', 'Morango', 'Kiwi', 'Uva', 'Manga', 'Abacaxi', 'Maçã', 'Pera', 'Maracujá', 'Coco']
 const extrasList = ['Granola', 'Paçoca', 'Leite em Pó', 'Castanha', 'Confete', 'Ovomaltine', 'Amendoim', 'Coco Ralado', 'Chia', "MM's"]
 
+const itemIcons: Record<string, string> = {
+  'Leite Condensado': '🥛', 'Nutella': '🍫', 'Chocolate': '🍫', 'Caramelo': '🍯', 'Morango': '🍓',
+  'Doce de Leite': '🍮', 'Leite Ninho': '🥛', 'Creme de Avelã': '🌰', 'Banana': '🍌', 'Kiwi': '🥝',
+  'Uva': '🍇', 'Manga': '🥭', 'Abacaxi': '🍍', 'Maçã': '🍎', 'Pera': '🍐', 'Maracujá': '🟡',
+  'Coco': '🥥', 'Granola': '🥣', 'Paçoca': '🥜', 'Leite em Pó': '🫘', 'Castanha': '🌰',
+  'Confete': '🎊', 'Ovomaltine': '🧋', 'Amendoim': '🥜', 'Coco Ralado': '🥥', 'Chia': '🌱', "MM's": '🍬',
+}
+
 export default function TenantAppPage() {
   const params = useParams()
   const slug = params.slug as string
@@ -32,6 +40,12 @@ export default function TenantAppPage() {
   const [order, setOrder] = useState<OrderState>({ type: '', size: '', base: '', toppings: [], fruits: [], extras: [] })
   const [history, setHistory] = useState<Step[]>([])
   const [stepMessages, setStepMessages] = useState<Record<string, string>>({})
+  const [itemIconsOverrides, setItemIconsOverrides] = useState<Record<string, string>>({})
+  const [toast, setToast] = useState('')
+  const [installPrompt, setInstallPrompt] = useState<any>(null)
+  const [showInstall, setShowInstall] = useState(false)
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
 
   useEffect(() => { const t = getTenantBySlug(slug); if (t) setTenant(t) }, [slug])
 
@@ -42,8 +56,16 @@ export default function TenantAppPage() {
       if (d.stepMessages && Object.keys(d.stepMessages).length > 0) {
         setStepMessages(d.stepMessages)
       }
+      if (d.itemIcons) setItemIconsOverrides(d.itemIcons)
     }).catch(() => {})
   }, [tenant?.id])
+
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); setShowInstall(true) }
+    window.addEventListener('beforeinstallprompt', handler)
+    if (window.matchMedia('(display-mode: standalone)').matches) setShowInstall(false)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
 
   const goTo = (next: Step) => { setHistory(prev => [...prev, step]); setStep(next) }
   const goBack = () => {
@@ -57,6 +79,15 @@ export default function TenantAppPage() {
   const orderTotal = getPrice()
   const deliveryFee = tenant?.deliveryFee || 0
   const sm = (key: string, fallback: string) => stepMessages[key] || fallback
+  const getIcon = (name: string) => itemIconsOverrides[name] || itemIcons[name] || '✨'
+
+  const handleInstall = async () => {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    const result = await installPrompt.userChoice
+    if (result.outcome === 'accepted') setShowInstall(false)
+    setInstallPrompt(null)
+  }
 
   if (!tenant) return (
     <div className="min-h-screen bg-dark-950 flex items-center justify-center">
@@ -121,6 +152,13 @@ export default function TenantAppPage() {
               </div>
             </div>
           )}
+          {showInstall && !['tracking'].includes(step) && (
+            <div className="px-4 pb-3">
+              <button onClick={handleInstall} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all">
+                <Download className="w-4 h-4" /> Instalar App
+              </button>
+            </div>
+          )}
         </div>
 
         <AnimatePresence mode="wait">
@@ -173,7 +211,10 @@ export default function TenantAppPage() {
                   {toppingsList.map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                       onClick={() => setOrder({ ...order, toppings: toggleItem(order.toppings, item) })}
-                      className={`px-4 py-2 rounded-full border-2 transition-all ${order.toppings.includes(item) ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-dark-200 hover:border-primary-200 text-dark-700'}`}>{item}</motion.button>
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full border-2 transition-all ${order.toppings.includes(item) ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-dark-200 hover:border-primary-200 text-dark-700'}`}>
+                      <span className="text-lg">{getIcon(item)}</span>
+                      <span>{item}</span>
+                    </motion.button>
                   ))}
                 </div>
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => goTo('fruits')} className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2" style={{ backgroundColor: tenant.primaryColor }}>Continuar <ArrowRight className="w-4 h-4" /></motion.button>
@@ -188,7 +229,8 @@ export default function TenantAppPage() {
                   {fruitsList.map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       onClick={() => setOrder({ ...order, fruits: toggleItem(order.fruits, item) })}
-                      className={`p-3 rounded-xl border-2 transition-all text-center ${order.fruits.includes(item) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
+                      className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${order.fruits.includes(item) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
+                      <span className="text-xl">{getIcon(item)}</span>
                       <span className="font-medium text-dark-900">{item}</span>
                     </motion.button>
                   ))}
@@ -206,6 +248,7 @@ export default function TenantAppPage() {
                     <motion.button key={item} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
                       onClick={() => setOrder({ ...order, extras: toggleItem(order.extras, item) })}
                       className={`flex items-center gap-3 w-full p-3 rounded-xl border-2 transition-all ${order.extras.includes(item) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
+                      <span className="text-xl">{getIcon(item)}</span>
                       <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${order.extras.includes(item) ? 'border-primary-500 bg-primary-500' : 'border-dark-300'}`}>
                         {order.extras.includes(item) && <Check className="w-4 h-4 text-white" />}
                       </div>
@@ -233,10 +276,23 @@ export default function TenantAppPage() {
                   <MapPin className="w-5 h-5 text-accent-500" />
                   <span className="text-dark-700">{tenant.address}</span>
                 </div>
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => goTo('checkout')} className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2" style={{ backgroundColor: tenant.primaryColor }}>Ir para Pagamento <ArrowRight className="w-4 h-4" /></motion.button>
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => {
+                  if (!customerName.trim()) { showToast('Digite seu nome primeiro!'); return }
+                  if (customerPhone.length < 11) { showToast('Digite um telefone válido!'); return }
+                  goTo('checkout')
+                }} className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2" style={{ backgroundColor: tenant.primaryColor }}>Ir para Pagamento <ArrowRight className="w-4 h-4" /></motion.button>
               </div>
             )}
           </motion.div>
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {toast && (
+            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-6 left-4 right-4 z-50 max-w-md mx-auto">
+              <div className="bg-red-500 text-white rounded-2xl px-5 py-3.5 shadow-2xl text-sm font-semibold text-center">⚠️ {toast}</div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {step !== 'type' && step !== 'cart' && (
@@ -258,6 +314,9 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
 }) {
   const [phase, setPhase] = useState<'phone' | 'register'>('phone')
   const [looking, setLooking] = useState(false)
+  const [toast, setToast] = useState('')
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
 
   const lookupCustomer = async (phone: string) => {
     const digits = phone.replace(/\D/g, '')
@@ -299,12 +358,24 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
                 placeholder="Seu nome completo" autoFocus />
             </div>
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={handleRegister}
+              onClick={() => {
+                if (!customerName.trim()) { showToast('Digite seu nome!'); return }
+                handleRegister()
+              }}
               className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all disabled:opacity-40"
               style={{ backgroundColor: tenant.primaryColor }} disabled={!customerName.trim()}>
               Começar <ArrowRight className="w-5 h-5 inline" />
             </motion.button>
           </motion.div>
+
+          <AnimatePresence>
+            {toast && (
+              <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
+                className="fixed bottom-6 left-4 right-4 z-50 max-w-md mx-auto">
+                <div className="bg-red-500 text-white rounded-2xl px-5 py-3.5 shadow-2xl text-sm font-semibold text-center">⚠️ {toast}</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     )
@@ -326,7 +397,11 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
               className="w-full bg-dark-50 border-2 border-dark-200 rounded-xl px-5 py-4 text-center text-lg text-dark-900 outline-none focus:border-primary-500 transition-all placeholder:text-dark-400"
               placeholder="(11) 99999-8888" autoFocus />
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={() => lookupCustomer(customerPhone)}
+              onClick={() => {
+                const digits = customerPhone.replace(/\D/g, '')
+                if (digits.length < 10) { showToast('Digite um telefone com DDD e número válido!'); return }
+                lookupCustomer(customerPhone)
+              }}
               className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all disabled:opacity-40"
               style={{ backgroundColor: tenant.primaryColor }} disabled={customerPhone.replace(/\D/g, '').length < 10}>
               Prosseguir <ArrowRight className="w-5 h-5 inline" />
@@ -345,6 +420,15 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
             )}
           </div>
         </motion.div>
+
+        <AnimatePresence>
+          {toast && (
+            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-6 left-4 right-4 z-50 max-w-md mx-auto">
+              <div className="bg-red-500 text-white rounded-2xl px-5 py-3.5 shadow-2xl text-sm font-semibold text-center">⚠️ {toast}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )
