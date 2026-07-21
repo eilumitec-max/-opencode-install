@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: 'Funciona no celular e tablet?',
-    a: 'Sim. O painel é 100% responsivo. O app do cliente é nativo (Android/iOS) e o link de vendas abre perfeitamente no mobile.',
+    a: 'Sim. O painel é 100% responsivo. O app do cliente é um PWA (instalável como app no celular) e o link de vendas abre perfeitamente no mobile.',
   },
   {
     q: 'Tem contrato de fidelidade?',

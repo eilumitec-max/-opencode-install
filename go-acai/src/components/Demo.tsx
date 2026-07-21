@@ -288,8 +288,8 @@ export function Demo() {
               <div className="w-14 h-14 rounded-xl bg-primary-100 flex items-center justify-center mx-auto mb-4">
                 <Smartphone className="w-7 h-7 text-primary-600" />
               </div>
-              <h4 className="font-semibold text-dark-900 mb-2">App Nativo</h4>
-              <p className="text-sm text-dark-500">Android & iOS nas stores</p>
+              <h4 className="font-semibold text-dark-900 mb-2">App PWA</h4>
+              <p className="text-sm text-dark-500">Instala como app no celular</p>
             </div>
             <div className="glass p-6 rounded-2xl text-center">
               <div className="w-14 h-14 rounded-xl bg-accent-100 flex items-center justify-center mx-auto mb-4">

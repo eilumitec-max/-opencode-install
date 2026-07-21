@@ -46,7 +46,7 @@ export function Hero() {
                 transition={{ duration: 1.5, repeat: Infinity }}
                 className="w-2 h-2 bg-primary-500 rounded-full"
               />
-              <span>Novo: Integração iFood & Mercado Pago</span>
+              <span>App próprio para seu delivery</span>
             </motion.div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-bold text-dark-900 leading-tight mb-6">

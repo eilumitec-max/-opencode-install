@@ -8,7 +8,7 @@ const comparison = [
     category: 'Custo & Modelo',
     items: [
       { feature: 'Mensalidade fixa', goAcai: true, whatsapp: false, detail: 'R$ 29,90/mês sem surpresas' },
-      { feature: 'Sem taxa por pedido', goAcai: true, whatsapp: false, detail: 'iFood cobra 23-27% por pedido' },
+      { feature: 'Sem taxa por pedido', goAcai: true, whatsapp: false, detail: 'Você fica com 100% do lucro' },
       { feature: 'Sem comissão oculta', goAcai: true, whatsapp: true, detail: 'Você fica com 100% do lucro' },
       { feature: 'Sem fidelidade', goAcai: true, whatsapp: true, detail: 'Cancela quando quiser' },
       { feature: 'Teste grátis 7 dias', goAcai: true, whatsapp: false, detail: 'Acesso completo, sem cartão' },
@@ -17,48 +17,30 @@ const comparison = [
   {
     category: 'Experiência do Cliente',
     items: [
-      { feature: 'App próprio (Stores)', goAcai: true, whatsapp: false, detail: 'Sua marca na Play Store e App Store' },
+      { feature: 'App PWA instalável', goAcai: true, whatsapp: false, detail: 'Adiciona na tela inicial como app' },
       { feature: 'Link de vendas único', goAcai: true, whatsapp: false, detail: 'Compartilha no WhatsApp/Insta/Bio' },
       { feature: 'Montagem visual', goAcai: true, whatsapp: false, detail: 'Tigela/Copo → Tamanho → Base → Coberturas...' },
       { feature: 'Fotos dos produtos', goAcai: true, whatsapp: 'parcial', detail: 'Cardápio visual atrativo' },
-      { feature: 'Pedidos agendados', goAcai: true, whatsapp: false, detail: 'Cliente agenda para amanhã, almoço...' },
-      { feature: 'Fidelidade & Cupons', goAcai: true, whatsapp: false, detail: 'Pontos, cashback, indicação, aniversário' },
-      { feature: 'Rastreio em tempo real', goAcai: true, whatsapp: false, detail: 'Mapa GPS do entregador' },
-      { feature: 'Notificações push', goAcai: true, whatsapp: 'parcial', detail: 'Status do pedido automático' },
+      { feature: 'Acompanhamento do pedido', goAcai: true, whatsapp: false, detail: 'Status em tempo real: Recebido → Preparando → Saiu → Entregue' },
+      { feature: 'Notificações', goAcai: true, whatsapp: 'parcial', detail: 'Status do pedido automático' },
     ],
   },
   {
     category: 'Gestão & Operação',
     items: [
-      { feature: 'Painel administrativo', goAcai: true, whatsapp: false, detail: 'Dashboard, relatórios, gestão completa' },
+      { feature: 'Painel administrativo', goAcai: true, whatsapp: false, detail: 'Dashboard, pedidos, produtos, relatórios' },
       { feature: 'Cardápio digital', goAcai: true, whatsapp: false, detail: 'Fotos, preços, estoque, categorias' },
-      { feature: 'Gestão de entregadores', goAcai: true, whatsapp: false, detail: 'Rotas, GPS, comissão, documentos' },
-      { feature: 'Área de entrega no mapa', goAcai: true, whatsapp: false, detail: 'Desenhe polígonos, taxa por km/região' },
-      { feature: 'Impressão automática', goAcai: true, whatsapp: false, detail: 'Cozinha + expedição + cupom fiscal' },
-      { feature: 'Relatórios gerenciais', goAcai: true, whatsapp: false, detail: 'Faturamento, ticket médio, top produtos' },
-      { feature: 'Controle de caixa', goAcai: true, whatsapp: false, detail: 'Sangria, suprimento, fechamento' },
-      { feature: 'Multi-usuário/permissões', goAcai: true, whatsapp: false, detail: 'Caixa, cozinha, gerente, entregador' },
-    ],
-  },
-  {
-    category: 'Pagamentos & Financeiro',
-    items: [
-      { feature: 'Mercado Pago integrado', goAcai: true, whatsapp: false, detail: 'PIX, Cartão, Boleto automático' },
-      { feature: 'Split de pagamentos', goAcai: true, whatsapp: false, detail: 'Recebe direto, taxas transparentes' },
-      { feature: 'Conciliação automática', goAcai: true, whatsapp: false, detail: 'Extrato sincronizado com Mercado Pago' },
-      { feature: 'Dinheiro/PIX na entrega', goAcai: true, whatsapp: true, detail: 'Opção para quem prefere' },
-      { feature: 'Nota fiscal automática', goAcai: true, whatsapp: false, detail: 'Emissão integrada (NF-e/NFC-e)' },
+      { feature: 'Gestão de pedidos', goAcai: true, whatsapp: false, detail: 'Status, histórico, cancelamento' },
+      { feature: 'Relatórios', goAcai: true, whatsapp: false, detail: 'Faturamento, ticket médio, top produtos' },
+      { feature: 'Controle financeiro', goAcai: true, whatsapp: false, detail: 'Fluxo de caixa, controle de vendas' },
     ],
   },
   {
     category: 'Tecnologia & Segurança',
     items: [
-      { feature: 'Multi-tenant isolado', goAcai: true, whatsapp: false, detail: 'Seu banco, seus dados, sua instância' },
-      { feature: 'LGPD & Criptografia', goAcai: true, whatsapp: false, detail: 'Dados criptografados, backup diário' },
-      { feature: '99.9% Uptime SLA', goAcai: true, whatsapp: true, detail: 'Infraestrutura cloud escalável' },
-      { feature: 'Login Google OAuth', goAcai: true, whatsapp: false, detail: 'Sem senha, conversão maior' },
-      { feature: 'PWA / Offline-first', goAcai: true, whatsapp: false, detail: 'Funciona sem internet, instala como app' },
-      { feature: 'API aberta', goAcai: true, whatsapp: false, detail: 'Integra com seu ERP, contabilidade' },
+      { feature: 'LGPD & Segurança', goAcai: true, whatsapp: false, detail: 'Dados criptografados, HTTPS obrigatório' },
+      { feature: 'Login Google OAuth', goAcai: true, whatsapp: false, detail: 'Login rápido sem senha' },
+      { feature: 'PWA (Instalável)', goAcai: true, whatsapp: false, detail: 'Funciona no celular, instala como app' },
     ],
   },
 ]
@@ -90,10 +72,10 @@ export function Comparison() {
             Comparativo Honesto
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-dark-900 mb-4">
-            GO AÇAÍ vs <span className="text-primary-600">WhatsApp</span> / <span className="text-primary-600">iFood</span>
+            GO AÇAÍ vs <span className="text-primary-600">WhatsApp</span>
           </h2>
           <p className="text-lg text-dark-500">
-            Por que centenas de lojas migraram do WhatsApp/iFood para app próprio
+            Por que centenas de lojas migraram do WhatsApp para app próprio
           </p>
         </motion.div>
 
@@ -132,12 +114,6 @@ export function Comparison() {
                           <span className="text-dark-600 text-xs font-bold">WhatsApp</span>
                         </div>
                       </th>
-                      <th className="px-4 py-3 text-center font-semibold text-dark-900 border-b border-primary-200 w-32">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-6 h-6 rounded bg-red-100" />
-                          <span className="text-red-600 text-xs font-bold">iFood</span>
-                        </div>
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -164,11 +140,6 @@ export function Comparison() {
                             <ComparisonIcon value={item.whatsapp} />
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-center">
-                          <div className="flex items-center justify-center">
-                            <X className="w-5 h-5 text-dark-300" />
-                          </div>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -188,8 +159,8 @@ export function Comparison() {
               Pare de perder dinheiro com comissões
             </h3>
             <p className="text-primary-100 mb-6 max-w-2xl mx-auto">
-              Com 30 pedidos/dia a R$ 30,00 = R$ 27.000/mês. iFood leva ~R$ 7.000. GO AÇAÍ custa R$ 29,90.
-              Você economiza <span className="font-bold text-white underline">R$ 83.000/ano</span>.
+              Tenha seu próprio sistema de delivery por R$ 29,90/mês. Sem taxa por pedido, sem fidelidade.
+              Seu app, suas vendas, seu lucro.
             </p>
             <button className="btn-accent text-lg px-10 py-4">
               Começar Teste Grátis

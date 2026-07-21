@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: 'GO AÇAÍ - Seu Aplicativo Delivery em Minutos',
     template: '%s | GO AÇAÍ',
   },
-  description: 'Tenha seu próprio aplicativo de delivery para açaí, sorveterias e gelaterias. Teste grátis por 7 dias. R$ 29,90/mês sem fidelidade. Integração com Mercado Pago.',
+  description: 'Tenha seu próprio aplicativo de delivery para açaí, sorveterias e gelaterias. Teste grátis por 7 dias. R$ 29,90/mês sem fidelidade.',
   keywords: ['delivery açaí', 'aplicativo sorveteria', 'sistema delivery', 'app açaí', 'gestão sorveteria', 'mercado pago delivery'],
   authors: [{ name: 'GO AÇAÍ' }],
   creator: 'GO AÇAÍ',
