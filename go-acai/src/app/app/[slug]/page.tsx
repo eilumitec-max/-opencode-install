@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, Download, X } from 'lucide-react'
+import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, X } from 'lucide-react'
 import { getTenantBySlug, type Tenant, type TenantProduct } from '@/lib/tenants'
 import { fetchTenantBySlug, insertOrder, upsertCustomer, fetchCustomerByPhone, fetchTenantSizes, fetchTenantTypes, fetchTenantPaymentMethods } from '@/lib/supabase-queries'
 import { supabase } from '@/lib/supabase'
@@ -61,8 +61,6 @@ export default function TenantAppPage() {
   const [itemIconsOverrides, setItemIconsOverrides] = useState<Record<string, string>>({})
   const [toast, setToast] = useState('')
   const [errorModal, setErrorModal] = useState('')
-  const [installPrompt, setInstallPrompt] = useState<any>(null)
-  const [showInstall, setShowInstall] = useState(false)
   const [dynamicToppings, setDynamicToppings] = useState<string[] | null>(null)
   const [dynamicFruits, setDynamicFruits] = useState<string[] | null>(null)
   const [dynamicExtras, setDynamicExtras] = useState<string[] | null>(null)
@@ -174,15 +172,6 @@ export default function TenantAppPage() {
     }).catch(() => {})
   }, [tenant?.id])
 
-  useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches) setShowInstall(false)
-    const handler = () => {
-      if (!localStorage.getItem('goacai_install_dismissed')) setShowInstall(true)
-    }
-    window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [])
-
   const goTo = (target: Step) => {
     setHistory(prev => [...prev, step])
     if (orderingSteps.includes(target)) {
@@ -291,13 +280,6 @@ export default function TenantAppPage() {
                 <span className="text-base shrink-0 mt-0.5">💬</span>
                 <span>{tenant.banner}</span>
               </div>
-            </div>
-          )}
-          {showInstall && !['tracking'].includes(step) && (
-            <div className="px-4 pb-3">
-              <button onClick={() => { localStorage.removeItem('goacai_install_dismissed'); window.location.reload() }} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all">
-                <Download className="w-4 h-4" /> Instalar {tenant?.name || 'App'}
-              </button>
             </div>
           )}
         </div>
@@ -803,6 +785,42 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
   )
 }
 
+function playStatusSound(status: string) {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    gain.gain.value = 0.15
+    if (status === 'preparing') {
+      osc.frequency.value = 800
+      osc.start(ctx.currentTime)
+      osc.stop(ctx.currentTime + 0.15)
+      const osc2 = ctx.createOscillator()
+      osc2.frequency.value = 1000
+      osc2.connect(gain)
+      osc2.start(ctx.currentTime + 0.25)
+      osc2.stop(ctx.currentTime + 0.4)
+    } else if (status === 'shipped') {
+      osc.frequency.value = 600
+      osc.type = 'triangle'
+      osc.start(ctx.currentTime)
+      osc.stop(ctx.currentTime + 0.3)
+      const osc2 = ctx.createOscillator()
+      osc2.frequency.value = 900
+      osc2.connect(gain)
+      osc2.start(ctx.currentTime + 0.4)
+      osc2.stop(ctx.currentTime + 0.7)
+      const osc3 = ctx.createOscillator()
+      osc3.frequency.value = 1200
+      osc3.connect(gain)
+      osc3.start(ctx.currentTime + 0.8)
+      osc3.stop(ctx.currentTime + 1.0)
+    }
+  } catch {}
+}
+
 function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void }) {
   const [trackLevel, setTrackLevel] = useState(0)
   const [trackLabel, setTrackLabel] = useState('Aguardando confirmação')
@@ -820,9 +838,14 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
 
   const statusToLevel: Record<string, number> = { pending: 0, preparing: 1, shipped: 2, delivered: 3 }
   const statusLabels: Record<string, string> = { pending: 'Aguardando confirmação', preparing: 'Preparando seu pedido...', shipped: 'Saiu para entrega!', delivered: 'Pedido entregue!' }
+  const prevStatusRef = useRef('')
 
   const updateFromStatus = (status: string) => {
     if (status && statusToLevel[status] !== undefined) {
+      if (prevStatusRef.current !== status && (status === 'preparing' || status === 'shipped')) {
+        playStatusSound(status)
+      }
+      prevStatusRef.current = status
       setTrackLevel(statusToLevel[status])
       setTrackLabel(statusLabels[status] || '')
     }
