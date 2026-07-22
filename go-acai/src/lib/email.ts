@@ -12,7 +12,7 @@ function getTransport() {
   return nodemailer.createTransport({
     host, port,
     secure: port === 465,
-    auth: { user, pass },
+    auth: { user, pass: pass.replace(/\s/g, '') },
     from,
   })
 }

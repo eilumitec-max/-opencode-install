@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     })
     if (linkError) return NextResponse.json({ error: linkError.message }, { status: 500 })
 
-    sendWelcomeEmail(email, storeName, slug)
+    try { await sendWelcomeEmail(email, storeName, slug) } catch (e: any) { console.error('Email error:', e?.message) }
 
     return NextResponse.json({ tenantId, slug })
   } catch (err: any) {
