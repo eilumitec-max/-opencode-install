@@ -310,7 +310,7 @@ export default function TenantAppPage() {
             {step === 'size' && (
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200">
-                  <AnimatedText text={sm('size', '🥤 Escolha 1 tamanho — você tem direito a 4 acompanhamentos grátis!')} className="font-display text-base font-bold text-primary-800" />
+                  <AnimatedText text={sm('size', '🥤 Escolha o tamanho da embalagem')} className="font-display text-base font-bold text-primary-800" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {displaySizes.options.map((opt, i) => (
