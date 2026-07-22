@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 const plans = [
@@ -33,8 +32,6 @@ export default function SignupPage() {
 
   const handleSignup = async () => {
     setLoading(true); setError('')
-    const { error: signInError } = await supabase.auth.signUp({ email, password })
-    if (signInError) { setError(translateError(signInError.message)); setLoading(false); return }
 
     const res = await fetch('/api/signup', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
