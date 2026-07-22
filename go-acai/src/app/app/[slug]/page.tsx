@@ -866,15 +866,6 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
   const [trackLabel, setTrackLabel] = useState('Aguardando confirmação')
   const [orderId, setOrderId] = useState('')
   const [customerData, setCustomerData] = useState<any>(null)
-  const [editingAddress, setEditingAddress] = useState(false)
-  const [editCep, setEditCep] = useState('')
-  const [editStreet, setEditStreet] = useState('')
-  const [editNumber, setEditNumber] = useState('')
-  const [editComplement, setEditComplement] = useState('')
-  const [editNeighborhood, setEditNeighborhood] = useState('')
-  const [editCity, setEditCity] = useState('')
-  const [editState, setEditState] = useState('')
-  const [saveMsg, setSaveMsg] = useState('')
 
   const statusToLevel: Record<string, number> = { pending: 0, preparing: 1, shipped: 2, delivered: 3 }
   const statusLabels: Record<string, string> = { pending: 'Aguardando confirmação', preparing: 'Preparando seu pedido...', shipped: 'Saiu para entrega!', delivered: 'Pedido entregue!' }
@@ -962,32 +953,6 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
     window.location.reload()
   }
 
-  const startEditAddress = () => {
-    if (!customerData) return
-    setEditCep(customerData.cep || '')
-    setEditStreet(customerData.address || '')
-    setEditNumber(customerData.number || '')
-    setEditComplement(customerData.complement || '')
-    setEditNeighborhood(customerData.neighborhood || '')
-    setEditCity(customerData.city || '')
-    setEditState(customerData.state || '')
-    setEditingAddress(true)
-    setSaveMsg('')
-  }
-
-  const saveAddress = async () => {
-    const err = await upsertCustomer({
-      phone: customerData.phone, name: customerData.name, tenant_id: customerData.tenant_id,
-      cep: editCep, address: editStreet, number: editNumber, complement: editComplement,
-      neighborhood: editNeighborhood, city: editCity, state: editState,
-    })
-    if (err) { setSaveMsg(`Erro: ${err.message}`); return }
-    setCustomerData({ ...customerData, cep: editCep, address: editStreet, number: editNumber, complement: editComplement, neighborhood: editNeighborhood, city: editCity, state: editState })
-    setEditingAddress(false)
-    setSaveMsg('Endereço atualizado!')
-    setTimeout(() => setSaveMsg(''), 3000)
-  }
-
   const steps = [
     { icon: '📋', label: 'Pedido recebido' },
     { icon: '👨‍🍳', label: 'Em preparo' },
@@ -1016,12 +981,9 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
           )}
         </div>
 
-        {customerData && customerData.address && !editingAddress && (
+        {customerData && customerData.address && (
           <div className="rounded-2xl p-4" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-dark-500 uppercase tracking-wider">Endereço de Entrega</p>
-              <button onClick={startEditAddress} className="text-xs text-primary-500 hover:text-primary-400 font-medium">Editar</button>
-            </div>
+            <p className="text-xs font-semibold text-dark-500 uppercase tracking-wider mb-2">Endereço de Entrega</p>
             <p className="text-sm text-dark-900">{customerData.address}, {customerData.number}{customerData.complement ? ` - ${customerData.complement}` : ''}</p>
             <p className="text-xs text-dark-500">{customerData.neighborhood}, {customerData.city} - {customerData.state}</p>
             <p className="text-xs text-dark-400 mt-1">CEP: {customerData.cep}</p>
@@ -1040,51 +1002,6 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
               <div className="flex justify-between font-bold text-sm"><span className="text-dark-700">Total</span><span style={{ color: tenant.primaryColor }}>R$ {trackData.total.toFixed(2).replace('.', ',')}</span></div>
             </div>
             {trackData.payment && <p className="text-xs text-dark-400 mt-1">Pagamento: {trackData.payment} — {trackData.method}</p>}
-          </div>
-        )}
-
-        {editingAddress && (
-          <div className="rounded-2xl p-4 border border-dark-200 space-y-3">
-            <p className="text-sm font-semibold text-dark-900">Editar Endereço</p>
-            <div>
-              <label className="text-xs text-dark-400 block mb-1">CEP</label>
-              <input value={editCep} onChange={e => setEditCep(e.target.value)} className="input-dark w-full text-sm" />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="col-span-2">
-                <label className="text-xs text-dark-400 block mb-1">Rua</label>
-                <input value={editStreet} onChange={e => setEditStreet(e.target.value)} className="input-dark w-full text-sm" />
-              </div>
-              <div>
-                <label className="text-xs text-dark-400 block mb-1">Número</label>
-                <input value={editNumber} onChange={e => setEditNumber(e.target.value)} className="input-dark w-full text-sm" />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-dark-400 block mb-1">Complemento</label>
-              <input value={editComplement} onChange={e => setEditComplement(e.target.value)} className="input-dark w-full text-sm" />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-dark-400 block mb-1">Bairro</label>
-                <input value={editNeighborhood} onChange={e => setEditNeighborhood(e.target.value)} className="input-dark w-full text-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-dark-400 block mb-1">Cidade</label>
-                  <input value={editCity} onChange={e => setEditCity(e.target.value)} className="input-dark w-full text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs text-dark-400 block mb-1">UF</label>
-                  <input value={editState} onChange={e => setEditState(e.target.value)} maxLength={2} className="input-dark w-full text-sm" />
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={saveAddress} className="flex-1 py-2 rounded-xl text-white text-sm font-semibold" style={{ backgroundColor: tenant.primaryColor }}>Salvar</button>
-              <button onClick={() => setEditingAddress(false)} className="px-4 py-2 rounded-xl border border-dark-200 text-sm text-dark-600">Cancelar</button>
-            </div>
-            {saveMsg && <p className="text-xs text-center text-green-600">{saveMsg}</p>}
           </div>
         )}
 
