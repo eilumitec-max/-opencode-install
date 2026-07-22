@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Package, ShoppingBag, Users, BarChart3, Settings, LogOut, Plus, Search,
   Edit3, Trash2, ChevronDown, MoreVertical, TrendingUp, DollarSign, Clock,
-  Image as ImageIcon, ExternalLink, Ruler, Palmtree, Wallet
+  Image as ImageIcon, ExternalLink, Ruler, Palmtree, Wallet, Printer
 } from 'lucide-react'
 import { tenants, getTenantById, type Tenant, type TenantProduct, type TenantOrder } from '@/lib/tenants'
 import { playNewOrder, playStatusChange } from '@/lib/sound'
@@ -563,6 +563,53 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
     }
   }
 
+  const printOrder = (order: TenantOrder) => {
+    const w = window.open('', '_blank')
+    if (!w) return
+    w.document.write(`
+      <html><head><meta charset="utf-8"><title>${order.id}</title>
+      <style>
+        @page { margin: 0; size: 80mm auto; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; font-size: 12px; color: #000; padding: 8px; }
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+        .header h2 { font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .header p { font-size: 10px; margin-top: 2px; }
+        .info { margin-bottom: 8px; }
+        .info div { display: flex; justify-content: space-between; font-size: 11px; padding: 1px 0; }
+        .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 6px 0; margin-bottom: 8px; }
+        .items .item { display: flex; justify-content: space-between; font-size: 11px; padding: 1px 0; }
+        .items .title { font-weight: bold; font-size: 11px; margin-bottom: 3px; }
+        .total { text-align: right; font-size: 14px; font-weight: bold; margin-bottom: 8px; padding-top: 4px; border-top: 1px solid #000; }
+        .footer { text-align: center; font-size: 10px; border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; }
+        @media print { body { padding: 4px; } }
+      </style></head><body>
+        <div class="header">
+          <h2>${tenant.name}</h2>
+          <p>${tenant.address}</p>
+          <p>${tenant.whatsapp}</p>
+        </div>
+        <div class="info">
+          <div><span>Pedido:</span><span>${order.id}</span></div>
+          <div><span>Data:</span><span>${order.date}</span></div>
+          <div><span>Cliente:</span><span>${order.customer}</span></div>
+          ${order.phone ? `<div><span>Telefone:</span><span>${order.phone}</span></div>` : ''}
+          <div><span>Pagamento:</span><span>${order.payment}</span></div>
+          <div><span>Tipo:</span><span>${order.method}</span></div>
+          ${order.address !== '-' ? `<div style="flex-direction:column;gap:1px;margin-top:4px"><span style="font-weight:bold">Endereço:</span><span>${order.address}</span></div>` : '<div><span>Retirada:</span><span>Sim</span></div>'}
+        </div>
+        <div class="items">
+          <div class="title">ITENS</div>
+          ${order.items.map((i: string) => `<div class="item"><span>${i}</span></div>`).join('')}
+        </div>
+        <div class="total">TOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}</div>
+        <div class="footer">Obrigado pela preferência!</div>
+        <script>window.onload=function(){window.print();window.close()}</script>
+      </body></html>
+    `)
+    w.document.close()
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -597,6 +644,9 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
                   <div><span className="text-dark-400 block text-xs">Total</span><span className="font-bold text-white">R$ {order.total.toFixed(2).replace('.', ',')}</span></div>
                 </div>
                 <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-dark-800">
+                  <button onClick={() => printOrder(order)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-dark-800 text-dark-400 hover:text-white hover:bg-dark-700 transition-all flex items-center gap-1.5">
+                    <Printer className="w-3.5 h-3.5" /> Imprimir
+                  </button>
                   {next && (
                     <button onClick={() => updateStatus(order.id, next.next)} className={`px-4 py-1.5 rounded-lg text-xs font-medium text-white transition-all ${next.color}`}>
                       {next.label}
