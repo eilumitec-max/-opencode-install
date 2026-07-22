@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Share2, Plus } from 'lucide-react'
 
 export default function InstallPrompt() {
+  const pathname = usePathname()
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [show, setShow] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
@@ -13,19 +15,21 @@ export default function InstallPrompt() {
   const [appName, setAppName] = useState('')
 
   useEffect(() => {
-    const match = window.location.pathname.match(/^\/app\/([^/]+)/)
-    if (match) {
-      const slug = match[1]
-      fetch(`/app/${slug}/manifest`).then(r => r.json()).then(m => {
-        setAppName(m.name || slug)
-      }).catch(() => {
-        setAppName(slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
-      })
-    }
-  }, [])
+    setShow(false)
+    setDeferredPrompt(null)
+    const match = pathname.match(/^\/app\/([^/]+)/)
+    if (!match) return
+    const slug = match[1]
+    fetch(`/app/${slug}/manifest`).then(r => r.json()).then(m => {
+      setAppName(m.name || slug)
+    }).catch(() => {
+      setAppName(slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
+    })
+  }, [pathname])
 
   useEffect(() => {
-    if (!window.location.pathname.startsWith('/app/')) return
+    const match = pathname.match(/^\/app\/([^/]+)/)
+    if (!match) return
 
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true)
@@ -49,14 +53,15 @@ export default function InstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', handler)
 
-    setTimeout(() => {
-      if (!show && !isInstalled && !localStorage.getItem('goacai_install_dismissed')) {
-        setShow(true)
-      }
+    const timeout = setTimeout(() => {
+      setShow(true)
     }, 5000)
 
-    return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [])
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler)
+      clearTimeout(timeout)
+    }
+  }, [pathname])
 
   const handleInstall = async () => {
     if (deferredPrompt) {
