@@ -18,6 +18,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     short_name: name.length > 12 ? name.substring(0, 12) + '…' : name,
     description: `Peça ${name} pelo app!`,
     start_url: `/app/${params.slug}`,
+    scope: '/app',
     display: 'standalone',
     orientation: 'portrait-primary',
     theme_color: themeColor,

@@ -45,8 +45,8 @@ self.addEventListener('push', e => {
   const data = e.data.json()
   self.registration.showNotification(data.title, {
     body: data.body,
-    icon: data.icon || '/icons/icon-192.svg',
-    badge: '/icons/icon-192.svg',
+    icon: data.icon || '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
     data: { url: data.url || '/' },
     vibrate: [200, 100, 200],
   })
