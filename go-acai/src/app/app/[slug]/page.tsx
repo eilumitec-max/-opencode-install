@@ -74,16 +74,17 @@ export default function TenantAppPage() {
   const isStepVisible = (s: Step): boolean => {
     const catName = stepToCategory[s]
     if (!catName) return true
-    if (dynamicToppings === null) return true
-    if (s === 'toppings' && dynamicToppings !== null) return dynamicToppings.length > 0
-    if (s === 'fruits' && dynamicFruits !== null) return dynamicFruits.length > 0
-    if (s === 'extras' && dynamicExtras !== null) return dynamicExtras.length > 0
+    if (s === 'toppings') return dynamicToppings ? dynamicToppings.length > 0 : false
+    if (s === 'fruits') return dynamicFruits ? dynamicFruits.length > 0 : false
+    if (s === 'extras') return dynamicExtras ? dynamicExtras.length > 0 : false
     return true
   }
 
   const visibleSteps = orderingSteps.filter(isStepVisible)
   const currentIdx = visibleSteps.indexOf(step)
   const progress = currentIdx >= 0 ? ((currentIdx + 1) / visibleSteps.length) * 100 : 0
+
+  const [hasData, setHasData] = useState(false)
 
   useEffect(() => {
     if (!slug) return
@@ -92,23 +93,36 @@ export default function TenantAppPage() {
         setTenant(sbTenant)
         const activeCats = sbTenant.categories.filter(c => c.active)
         const activeProds = sbTenant.products.filter(p => p.active)
+        setHasData(activeCats.length > 0 || activeProds.length > 0)
         const byCat = (name: string) => activeCats.some(c => c.name === name)
         setDynamicToppings(byCat('Coberturas') ? activeProds.filter(p => p.category === 'Coberturas').map(p => p.name) : [])
         setDynamicFruits(byCat('Frutas') ? activeProds.filter(p => p.category === 'Frutas').map(p => p.name) : [])
         setDynamicExtras(byCat('Complementos') ? activeProds.filter(p => p.category === 'Complementos').map(p => p.name) : [])
       } else {
-        setDynamicToppings(null)
-        setDynamicFruits(null)
-        setDynamicExtras(null)
         const t = getTenantBySlug(slug)
-        if (t) setTenant(t)
+        if (t) {
+          setTenant(t)
+          setHasData(true)
+          const activeCats = t.categories.filter(c => c.active)
+          const activeProds = t.products.filter(p => p.active)
+          const byCat = (name: string) => activeCats.some(c => c.name === name)
+          setDynamicToppings(byCat('Coberturas') ? activeProds.filter(p => p.category === 'Coberturas').map(p => p.name) : [])
+          setDynamicFruits(byCat('Frutas') ? activeProds.filter(p => p.category === 'Frutas').map(p => p.name) : [])
+          setDynamicExtras(byCat('Complementos') ? activeProds.filter(p => p.category === 'Complementos').map(p => p.name) : [])
+        }
       }
     }).catch(() => {
-      setDynamicToppings(null)
-      setDynamicFruits(null)
-      setDynamicExtras(null)
       const t = getTenantBySlug(slug)
-      if (t) setTenant(t)
+      if (t) {
+        setTenant(t)
+        setHasData(true)
+        const activeCats = t.categories.filter(c => c.active)
+        const activeProds = t.products.filter(p => p.active)
+        const byCat = (name: string) => activeCats.some(c => c.name === name)
+        setDynamicToppings(byCat('Coberturas') ? activeProds.filter(p => p.category === 'Coberturas').map(p => p.name) : [])
+        setDynamicFruits(byCat('Frutas') ? activeProds.filter(p => p.category === 'Frutas').map(p => p.name) : [])
+        setDynamicExtras(byCat('Complementos') ? activeProds.filter(p => p.category === 'Complementos').map(p => p.name) : [])
+      }
     })
   }, [slug])
 
@@ -182,6 +196,17 @@ export default function TenantAppPage() {
   if (!tenant) return (
     <div className="min-h-screen bg-dark-950 flex items-center justify-center">
       <div className="text-center text-dark-400"><p className="text-4xl mb-4">🔍</p><p className="font-bold text-white">Loja não encontrada</p><p className="text-sm mt-1">Verifique o link e tente novamente</p></div>
+    </div>
+  )
+
+  if (!hasData) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
+      <div className="text-center p-8 max-w-md">
+        <div className="text-6xl mb-6">{tenant.logo}</div>
+        <h1 className="text-2xl font-bold font-display mb-2" style={{ color: tenant.primaryColor }}>{tenant.name}</h1>
+        <p className="text-dark-500 mb-4">Em breve — Estamos preparando o cardápio!</p>
+        <p className="text-sm text-dark-400">Volte mais tarde para fazer seu pedido.</p>
+      </div>
     </div>
   )
 
