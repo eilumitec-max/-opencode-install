@@ -1,4 +1,4 @@
-const CACHE = 'goacai-v2'
+const CACHE = 'goacai-v3'
 
 self.addEventListener('install', e => {
   self.skipWaiting()
@@ -6,8 +6,16 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => self.clients.claim())
   )
+})
+
+self.addEventListener('message', e => {
+  if (e.data === 'force') {
+    self.skipWaiting()
+    self.clients.claim()
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
+  }
 })
 
 self.addEventListener('fetch', e => {
