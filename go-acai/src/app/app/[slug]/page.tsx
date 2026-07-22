@@ -175,15 +175,13 @@ export default function TenantAppPage() {
   }, [tenant?.id])
 
   useEffect(() => {
-    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); setShowInstall(true) }
-    window.addEventListener('beforeinstallprompt', handler)
     if (window.matchMedia('(display-mode: standalone)').matches) setShowInstall(false)
+    const handler = () => {
+      if (!localStorage.getItem('goacai_install_dismissed')) setShowInstall(true)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
-
-  const handleInstall = () => {
-    if (installPrompt) { installPrompt.prompt(); installPrompt.userChoice.then(() => setShowInstall(false)) }
-  }
 
   const goTo = (target: Step) => {
     setHistory(prev => [...prev, step])
@@ -297,8 +295,8 @@ export default function TenantAppPage() {
           )}
           {showInstall && !['tracking'].includes(step) && (
             <div className="px-4 pb-3">
-              <button onClick={handleInstall} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all">
-                <Download className="w-4 h-4" /> Instalar App
+              <button onClick={() => { localStorage.removeItem('goacai_install_dismissed'); window.location.reload() }} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all">
+                <Download className="w-4 h-4" /> Instalar {tenant?.name || 'App'}
               </button>
             </div>
           )}

@@ -10,6 +10,12 @@ export default function InstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false)
   const [isIos, setIsIos] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
+  const [appName, setAppName] = useState('')
+
+  useEffect(() => {
+    const match = window.location.pathname.match(/^\/app\/([^/]+)/)
+    if (match) setAppName(match[1])
+  }, [])
 
   useEffect(() => {
     if (!window.location.pathname.startsWith('/app/')) return
@@ -88,11 +94,11 @@ export default function InstallPrompt() {
               <Download className="w-10 h-10 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold font-display text-dark-900">Instalar App</h2>
+              <h2 className="text-xl font-bold font-display text-dark-900">Instalar {appName}</h2>
               <p className="text-dark-500 text-sm mt-1">
                 {isIos
-                  ? 'Instale o app na tela de início do seu iPhone para receber notificações e pedir mais rápido!'
-                  : 'Instale o app no seu celular para receber notificações em tempo real e acessar com 1 clique!'}
+                  ? `Instale o app ${appName} na tela de início do seu iPhone para receber notificações e pedir mais rápido!`
+                  : `Instale o app ${appName} no seu celular para receber notificações em tempo real e acessar com 1 clique!`}
               </p>
             </div>
             {!isIos && deferredPrompt && (
