@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, Download, X } from 'lucide-react'
 import { getTenantBySlug, type Tenant, type TenantProduct } from '@/lib/tenants'
-import { fetchTenantBySlug, insertOrder, upsertCustomer, fetchCustomerByPhone } from '@/lib/supabase-queries'
+import { fetchTenantBySlug, insertOrder, upsertCustomer, fetchCustomerByPhone, fetchTenantSizes, fetchTenantTypes, fetchTenantPaymentMethods } from '@/lib/supabase-queries'
 import { supabase } from '@/lib/supabase'
 
 type Step = 'name' | 'type' | 'size' | 'base' | 'toppings' | 'fruits' | 'extras' | 'cart' | 'checkout' | 'tracking'
@@ -67,9 +67,28 @@ export default function TenantAppPage() {
   const [dynamicFruits, setDynamicFruits] = useState<string[] | null>(null)
   const [dynamicExtras, setDynamicExtras] = useState<string[] | null>(null)
   const [itemPrices, setItemPrices] = useState({ toppingPrice: 1.5, fruitPrice: 0, extraPrice: 2.0 })
+  const [dbSizes, setDbSizes] = useState<any[]>([])
+  const [dbTypes, setDbTypes] = useState<any[]>([])
+  const [dbPayments, setDbPayments] = useState<any[]>([])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
   const showError = (msg: string) => { setErrorModal(msg) }
+
+  const activeSizes = dbSizes.length > 0 ? dbSizes.filter((s: any) => s.active).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : []
+  const activeTypes = dbTypes.length > 0 ? dbTypes.filter((t: any) => t.active).sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : []
+  const activePayments = dbPayments.length > 0 ? dbPayments.filter((p: any) => p.active) : []
+
+  const displaySizes = activeSizes.length > 0
+    ? { options: activeSizes.map((s: any) => s.name), prices: Object.fromEntries(activeSizes.map((s: any) => [s.name, `R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}`])) }
+    : { options: sizeOptions, prices: sizePrices }
+
+  const displayTypes = activeTypes.length > 0
+    ? { options: activeTypes.map((t: any) => t.name), emojis: Object.fromEntries(activeTypes.map((t: any) => [t.name, t.emoji || '🫐'])), bases: Object.fromEntries(activeTypes.map((t: any) => [t.name, t.base || 'Açaí'])) }
+    : { options: typeOptions, emojis: typeEmojis, bases: { 'Açaí Tradicional': 'Açaí', 'Açaí Zero Açúcar': 'Açaí', 'Creme de Cupuaçu': 'Creme', 'Sorvete de Creme': 'Sorvete', 'Sorvete de Chocolate': 'Sorvete', 'Sorvete de Morango': 'Sorvete' } }
+
+  const displayPaymentOptions = activePayments.length > 0
+    ? activePayments.map((p: any) => ({ icon: p.icon || '💵', label: p.name }))
+    : [{ icon: '💵', label: 'Dinheiro' }, { icon: '💳', label: 'Cartão' }, { icon: '📱', label: 'PIX' }]
 
   const isStepVisible = (s: Step): boolean => {
     const catName = stepToCategory[s]
@@ -125,6 +144,13 @@ export default function TenantAppPage() {
       }
     })
   }, [slug])
+
+  useEffect(() => {
+    if (!tenant) return
+    fetchTenantSizes(tenant.id).then(setDbSizes).catch(() => {})
+    fetchTenantTypes(tenant.id).then(setDbTypes).catch(() => {})
+    fetchTenantPaymentMethods(tenant.id).then(setDbPayments).catch(() => {})
+  }, [tenant])
 
   useEffect(() => {
     if (orderingSteps.includes(step) && !isStepVisible(step)) {
@@ -214,7 +240,7 @@ export default function TenantAppPage() {
   if (step === 'tracking') return <TrackingScreen tenant={tenant} goBack={goBack} />
   if (step === 'checkout') return (
     <CheckoutScreen tenant={tenant} total={orderTotal + deliveryFee} goBack={goBack} goTo={goTo}
-      customerName={customerName} customerPhone={customerPhone} order={order} />
+      customerName={customerName} customerPhone={customerPhone} order={order} paymentOptions={displayPaymentOptions} />
   )
 
   const clearOrderForSkipped = (s: Step) => {
@@ -286,11 +312,11 @@ export default function TenantAppPage() {
                   <AnimatedText text={sm('type', '🍇 Escolha 1 base para começar seu pedido!')} className="font-display text-base font-bold text-primary-800" />
                 </div>
                 <div className="space-y-2">
-                  {typeOptions.map(opt => (
+                  {displayTypes.options.map(opt => (
                     <motion.button key={opt} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => { const baseMap: Record<string, string> = { 'Açaí Tradicional': 'Açaí', 'Açaí Zero Açúcar': 'Açaí', 'Creme de Cupuaçu': 'Creme', 'Sorvete de Creme': 'Sorvete', 'Sorvete de Chocolate': 'Sorvete', 'Sorvete de Morango': 'Sorvete' }; setOrder({ ...order, type: opt, base: baseMap[opt] || 'Açaí' }); goTo('size') }}
+                      onClick={() => { setOrder({ ...order, type: opt, base: displayTypes.bases[opt] || 'Açaí' }); goTo('size') }}
                       className={`flex items-center gap-4 w-full p-4 rounded-xl border-2 transition-all ${order.type === opt ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
-                      <span className="text-2xl">{typeEmojis[opt]}</span>
+                      <span className="text-2xl">{displayTypes.emojis[opt] || '🫐'}</span>
                       <span className="font-medium text-dark-900 flex-1 text-left">{opt}</span>
                       {order.type === opt && <Check className="w-5 h-5 text-primary-500" />}
                     </motion.button>
@@ -304,16 +330,16 @@ export default function TenantAppPage() {
                   <AnimatedText text={sm('size', '🥤 Escolha 1 tamanho — você tem direito a 4 acompanhamentos grátis!')} className="font-display text-base font-bold text-primary-800" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  {sizeOptions.map((opt, i) => (
+                  {displaySizes.options.map((opt, i) => (
                     <motion.button key={opt} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       onClick={() => { setOrder({ ...order, size: opt }); goTo('toppings') }}
                       className={`p-5 rounded-2xl border-2 transition-all text-center ${order.size === opt ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
                       <div className="flex items-center justify-center mb-2">
-                        <div style={{ width: `${40 + i * 15}px`, height: `${40 + i * 15}px` }} className="rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
+                        <div style={{ width: `${40 + Math.min(i, 3) * 15}px`, height: `${40 + Math.min(i, 3) * 15}px` }} className="rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
                           <span className="font-bold" style={{ color: tenant.primaryColor }}>{opt}</span>
                         </div>
                       </div>
-                      <p className="text-lg font-bold" style={{ color: tenant.primaryColor }}>{sizePrices[opt]}</p>
+                      <p className="text-lg font-bold" style={{ color: tenant.primaryColor }}>{displaySizes.prices[opt]}</p>
                     </motion.button>
                   ))}
                 </div>
@@ -579,9 +605,10 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
   )
 }
 
-function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPhone, order }: {
+function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPhone, order, paymentOptions }: {
   tenant: Tenant; total: number; goBack: () => void; goTo: (s: Step) => void
   customerName: string; customerPhone: string; order: OrderState
+  paymentOptions: { icon: string; label: string }[]
 }) {
   const [deliveryMethod, setDeliveryMethod] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('')
@@ -747,7 +774,7 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
         <div>
           <p className="font-semibold text-dark-700 mb-2">Forma de Pagamento</p>
           <div className="grid grid-cols-3 gap-2">
-            {[{ icon: '💵', label: 'Dinheiro' }, { icon: '💳', label: 'Cartão' }, { icon: '📱', label: 'PIX' }].map(opt => (
+            {paymentOptions.map(opt => (
               <button key={opt.label} onClick={() => setPaymentMethod(opt.label)} className={`p-3 rounded-xl border-2 text-center transition-all ${paymentMethod === opt.label ? 'border-primary-500 bg-primary-50' : 'border-dark-200'}`}>
                 <p className="text-xl">{opt.icon}</p><p className="text-xs font-medium text-dark-700">{opt.label}</p>
               </button>

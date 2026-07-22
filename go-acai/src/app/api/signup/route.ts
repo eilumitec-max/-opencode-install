@@ -85,6 +85,31 @@ export async function POST(request: Request) {
     ]
     await supabase.from('products').insert(defaultProducts)
 
+    const _sid = { n: 0 }; const sizeId = () => `s${Date.now()}${++_sid.n}${Math.random().toString(36).slice(2, 4)}`
+    await supabase.from('sizes').insert([
+      { id: sizeId(), tenant_id: tenantId, name: '300 ml', price: 15.0, order: 1, active: true },
+      { id: sizeId(), tenant_id: tenantId, name: '500 ml', price: 19.9, order: 2, active: true },
+      { id: sizeId(), tenant_id: tenantId, name: '700 ml', price: 24.9, order: 3, active: true },
+      { id: sizeId(), tenant_id: tenantId, name: '1 Litro', price: 32.9, order: 4, active: true },
+    ])
+
+    const _tid = { n: 0 }; const typeId = () => `y${Date.now()}${++_tid.n}${Math.random().toString(36).slice(2, 4)}`
+    await supabase.from('types').insert([
+      { id: typeId(), tenant_id: tenantId, name: 'Açaí Tradicional', emoji: '🍇', base: 'Açaí', order: 1, active: true },
+      { id: typeId(), tenant_id: tenantId, name: 'Açaí Zero Açúcar', emoji: '🍇', base: 'Açaí', order: 2, active: true },
+      { id: typeId(), tenant_id: tenantId, name: 'Creme de Cupuaçu', emoji: '🍈', base: 'Creme', order: 3, active: true },
+      { id: typeId(), tenant_id: tenantId, name: 'Sorvete de Creme', emoji: '🍦', base: 'Sorvete', order: 4, active: true },
+      { id: typeId(), tenant_id: tenantId, name: 'Sorvete de Chocolate', emoji: '🍫', base: 'Sorvete', order: 5, active: true },
+      { id: typeId(), tenant_id: tenantId, name: 'Sorvete de Morango', emoji: '🍓', base: 'Sorvete', order: 6, active: true },
+    ])
+
+    const _pid2 = { n: 0 }; const pmId = () => `pm${Date.now()}${++_pid2.n}${Math.random().toString(36).slice(2, 4)}`
+    await supabase.from('payment_methods').insert([
+      { id: pmId(), tenant_id: tenantId, name: 'Dinheiro', icon: '💵', active: true },
+      { id: pmId(), tenant_id: tenantId, name: 'Cartão', icon: '💳', active: true },
+      { id: pmId(), tenant_id: tenantId, name: 'PIX', icon: '📱', active: true },
+    ])
+
     try { await sendWelcomeEmail(email, storeName, slug) } catch (e: any) { console.error('Email error:', e?.message) }
 
     return NextResponse.json({ tenantId, slug })

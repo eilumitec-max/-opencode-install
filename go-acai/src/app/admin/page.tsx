@@ -7,14 +7,21 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Package, ShoppingBag, Users, BarChart3, Settings, LogOut, Plus, Search,
   Edit3, Trash2, ChevronDown, MoreVertical, TrendingUp, DollarSign, Clock,
-  Image as ImageIcon, ExternalLink
+  Image as ImageIcon, ExternalLink, Ruler, Palmtree, Wallet
 } from 'lucide-react'
 import { tenants, getTenantById, type Tenant, type TenantProduct, type TenantOrder } from '@/lib/tenants'
 import { playNewOrder, playStatusChange } from '@/lib/sound'
 import { supabase } from '@/lib/supabase'
-import { fetchTenantById, upsertProduct, deleteProductById, upsertCategory, deleteCategoryById, updateOrderStatus, fetchOrdersByTenant, deleteOrderById } from '@/lib/supabase-queries'
+import {
+  fetchTenantById, upsertProduct, deleteProductById, upsertCategory, deleteCategoryById,
+  updateOrderStatus, fetchOrdersByTenant, deleteOrderById,
+  fetchTenantSizes, upsertSize, deleteSizeById,
+  fetchTenantTypes, upsertType, deleteTypeById,
+  fetchTenantPaymentMethods, upsertPaymentMethod, deletePaymentMethodById,
+  updateTenant,
+} from '@/lib/supabase-queries'
 
-type Tab = 'dashboard' | 'products' | 'categories' | 'orders' | 'analytics' | 'settings'
+type Tab = 'dashboard' | 'products' | 'categories' | 'orders' | 'analytics' | 'settings' | 'sizes' | 'types' | 'payments'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -41,6 +48,9 @@ export default function AdminPage() {
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { key: 'products', label: 'Produtos', icon: Package },
     { key: 'categories', label: 'Categorias', icon: ShoppingBag },
+    { key: 'sizes', label: 'Tamanhos', icon: Ruler },
+    { key: 'types', label: 'Sabores', icon: Palmtree },
+    { key: 'payments', label: 'Pagamentos', icon: Wallet },
     { key: 'orders', label: 'Pedidos', icon: Users },
     { key: 'analytics', label: 'Analytics', icon: BarChart3 },
     { key: 'settings', label: 'Configurações', icon: Settings },
@@ -98,6 +108,9 @@ export default function AdminPage() {
               {tab === 'products' && <ProductsTab tenant={tenant} />}
               {tab === 'categories' && <CategoriesTab tenant={tenant} />}
               {tab === 'orders' && <OrdersTab tenant={tenant} />}
+              {tab === 'sizes' && <SizesTab tenant={tenant} />}
+              {tab === 'types' && <TypesTab tenant={tenant} />}
+              {tab === 'payments' && <PaymentsTab tenant={tenant} />}
               {tab === 'analytics' && <AnalyticsTab tenant={tenant} />}
               {tab === 'settings' && <SettingsTab tenant={tenant} />}
             </motion.div>
@@ -609,6 +622,239 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
   )
 }
 
+function SizesTab({ tenant }: { tenant: Tenant }) {
+  const [sizes, setSizes] = useState<any[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', price: '' })
+  const [showAdd, setShowAdd] = useState(false)
+  const [newSize, setNewSize] = useState({ name: '', price: '' })
+
+  useEffect(() => { fetchTenantSizes(tenant.id).then(setSizes) }, [tenant.id])
+
+  const addSize = () => {
+    if (!newSize.name || !newSize.price) return
+    const s = { id: `sz${Date.now()}`, tenant_id: tenant.id, name: newSize.name, price: parseFloat(newSize.price), order: sizes.length + 1, active: true }
+    setSizes(prev => [...prev, s]); upsertSize(s); setNewSize({ name: '', price: '' }); setShowAdd(false)
+  }
+  const startEdit = (s: any) => { setEditingId(s.id); setEditForm({ name: s.name, price: String(s.price) }) }
+  const saveEdit = (id: string) => {
+    if (!editForm.name || !editForm.price) return
+    setSizes(prev => prev.map(s => s.id === id ? { ...s, name: editForm.name, price: parseFloat(editForm.price) } : s))
+    upsertSize({ id, tenant_id: tenant.id, name: editForm.name, price: parseFloat(editForm.price) }); setEditingId(null)
+  }
+  const toggleActive = (id: string) => {
+    setSizes(prev => prev.map(s => s.id === id ? { ...s, active: !s.active } : s))
+    const s = sizes.find(x => x.id === id); if (s) upsertSize({ ...s, active: !s.active, tenant_id: tenant.id })
+  }
+  const deleteSize = (id: string) => { setSizes(prev => prev.filter(s => s.id !== id)); deleteSizeById(id, tenant.id) }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div><h2 className="text-2xl font-bold text-white font-display">Tamanhos</h2><p className="text-dark-400 text-sm mt-1">{sizes.length} tamanhos configurados</p></div>
+        <button onClick={() => setShowAdd(true)} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Novo Tamanho</button>
+      </div>
+      <AnimatePresence>{showAdd && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-5 overflow-hidden">
+          <h3 className="font-semibold text-white mb-4">Novo Tamanho</h3>
+          <div className="flex items-end gap-4">
+            <div><label className="text-xs text-dark-400 block mb-1">Nome</label><input value={newSize.name} onChange={e => setNewSize({ ...newSize, name: e.target.value })} className="input-dark" placeholder="Ex: 400 ml" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Preço (R$)</label><input type="number" step="0.1" min="0" value={newSize.price} onChange={e => setNewSize({ ...newSize, price: e.target.value })} className="input-dark w-28" /></div>
+            <div className="flex gap-2 pb-0.5"><button onClick={addSize} className="btn-primary text-sm">Adicionar</button><button onClick={() => setShowAdd(false)} className="btn-outline text-sm">Cancelar</button></div>
+          </div>
+        </motion.div>
+      )}</AnimatePresence>
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-dark-800 text-dark-400 text-xs uppercase tracking-wider">
+            <th className="text-left p-4 font-medium">Nome</th><th className="text-left p-4 font-medium">Preço</th><th className="text-left p-4 font-medium">Status</th><th className="text-right p-4 font-medium">Ações</th>
+          </tr></thead>
+          <tbody>{sizes.map(s => editingId === s.id ? (
+            <tr key={s.id} className="border-b border-dark-800/50"><td colSpan={4} className="p-4">
+              <div className="flex items-center gap-3">
+                <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="input-dark w-32" />
+                <input type="number" step="0.1" value={editForm.price} onChange={e => setEditForm({ ...editForm, price: e.target.value })} className="input-dark w-24" />
+                <button onClick={() => saveEdit(s.id)} className="btn-primary text-sm">Salvar</button>
+                <button onClick={() => setEditingId(null)} className="btn-outline text-sm">Cancelar</button>
+              </div>
+            </td></tr>
+          ) : (
+            <tr key={s.id} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
+              <td className="p-4"><span className="font-medium text-white">{s.name}</span></td>
+              <td className="p-4"><span className="text-white font-medium">R$ {parseFloat(s.price).toFixed(2).replace('.', ',')}</span></td>
+              <td className="p-4"><button onClick={() => toggleActive(s.id)} className={`px-3 py-1 rounded-full text-xs font-medium ${s.active ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'}`}>{s.active ? 'Ativo' : 'Inativo'}</button></td>
+              <td className="p-4 text-right"><div className="flex items-center justify-end gap-2">
+                <button onClick={() => startEdit(s)} className="p-2 rounded-lg hover:bg-dark-700 text-dark-400 hover:text-primary-400"><Edit3 className="w-4 h-4" /></button>
+                <button onClick={() => deleteSize(s.id)} className="p-2 rounded-lg hover:bg-dark-700 text-dark-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+              </div></td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function TypesTab({ tenant }: { tenant: Tenant }) {
+  const [types, setTypes] = useState<any[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', emoji: '', base: '' })
+  const [showAdd, setShowAdd] = useState(false)
+  const [newType, setNewType] = useState({ name: '', emoji: '🍇', base: 'Açaí' })
+
+  useEffect(() => { fetchTenantTypes(tenant.id).then(setTypes) }, [tenant.id])
+
+  const bases = ['Açaí', 'Creme', 'Sorvete']
+  const emojis = ['🍇', '🍈', '🍦', '🍫', '🍓', '🥤', '🧃', '🍨', '🍧', '🫐']
+
+  const addType = () => {
+    if (!newType.name) return
+    const t = { id: `ty${Date.now()}`, tenant_id: tenant.id, name: newType.name, emoji: newType.emoji, base: newType.base, order: types.length + 1, active: true }
+    setTypes(prev => [...prev, t]); upsertType(t); setNewType({ name: '', emoji: '🍇', base: 'Açaí' }); setShowAdd(false)
+  }
+  const startEdit = (t: any) => { setEditingId(t.id); setEditForm({ name: t.name, emoji: t.emoji, base: t.base }) }
+  const saveEdit = (id: string) => {
+    if (!editForm.name) return
+    setTypes(prev => prev.map(t => t.id === id ? { ...t, name: editForm.name, emoji: editForm.emoji, base: editForm.base } : t))
+    upsertType({ id, tenant_id: tenant.id, name: editForm.name, emoji: editForm.emoji, base: editForm.base }); setEditingId(null)
+  }
+  const toggleActive = (id: string) => {
+    setTypes(prev => prev.map(t => t.id === id ? { ...t, active: !t.active } : t))
+    const t = types.find(x => x.id === id); if (t) upsertType({ ...t, active: !t.active, tenant_id: tenant.id })
+  }
+  const deleteType = (id: string) => { setTypes(prev => prev.filter(t => t.id !== id)); deleteTypeById(id, tenant.id) }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div><h2 className="text-2xl font-bold text-white font-display">Sabores</h2><p className="text-dark-400 text-sm mt-1">{types.length} sabores disponíveis</p></div>
+        <button onClick={() => setShowAdd(true)} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Novo Sabor</button>
+      </div>
+      <AnimatePresence>{showAdd && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-5 overflow-hidden">
+          <h3 className="font-semibold text-white mb-4">Novo Sabor</h3>
+          <div className="flex items-end gap-4">
+            <div><label className="text-xs text-dark-400 block mb-1">Nome</label><input value={newType.name} onChange={e => setNewType({ ...newType, name: e.target.value })} className="input-dark" placeholder="Ex: Açaí Fit" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Base</label><select value={newType.base} onChange={e => setNewType({ ...newType, base: e.target.value })} className="input-dark">{bases.map(b => <option key={b}>{b}</option>)}</select></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Ícone</label><div className="flex gap-1">{emojis.map(e => (
+              <button key={e} onClick={() => setNewType({ ...newType, emoji: e })} className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-all ${newType.emoji === e ? 'bg-primary-500/20 border border-primary-500/50' : 'bg-dark-800 hover:bg-dark-700 border border-dark-700'}`}>{e}</button>
+            ))}</div></div>
+            <div className="flex gap-2 pb-0.5"><button onClick={addType} className="btn-primary text-sm">Adicionar</button><button onClick={() => setShowAdd(false)} className="btn-outline text-sm">Cancelar</button></div>
+          </div>
+        </motion.div>
+      )}</AnimatePresence>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {types.map(t => editingId === t.id ? (
+          <motion.div key={t.id} layout className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex gap-1">{emojis.map(e => (
+                <button key={e} onClick={() => setEditForm({ ...editForm, emoji: e })} className={`w-8 h-8 rounded-lg text-base flex items-center justify-center ${editForm.emoji === e ? 'bg-primary-500/20 border border-primary-500/50' : 'bg-dark-800 border border-dark-700'}`}>{e}</button>
+              ))}</div>
+              <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="input-dark flex-1" />
+              <select value={editForm.base} onChange={e => setEditForm({ ...editForm, base: e.target.value })} className="input-dark w-24">{bases.map(b => <option key={b}>{b}</option>)}</select>
+            </div>
+            <div className="flex gap-2"><button onClick={() => saveEdit(t.id)} className="btn-primary text-sm">Salvar</button><button onClick={() => setEditingId(null)} className="btn-outline text-sm">Cancelar</button></div>
+          </motion.div>
+        ) : (
+          <motion.div key={t.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{t.emoji}</span>
+                <div><p className="font-medium text-white">{t.name}</p><p className="text-xs text-dark-500">Base: {t.base}</p></div>
+              </div>
+              <button onClick={() => toggleActive(t.id)} className={`w-10 h-6 rounded-full transition-all ${t.active ? 'bg-primary-500' : 'bg-dark-700'} relative`}>
+                <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${t.active ? 'left-5' : 'left-1'}`} />
+              </button>
+            </div>
+            <div className="flex items-center justify-between text-xs text-dark-400">
+              <button onClick={() => startEdit(t)} className="text-primary-400 hover:text-primary-300">Editar</button>
+              <button onClick={() => deleteType(t.id)} className="text-red-400 hover:text-red-300">Remover</button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PaymentsTab({ tenant }: { tenant: Tenant }) {
+  const [methods, setMethods] = useState<any[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', icon: '' })
+  const [showAdd, setShowAdd] = useState(false)
+  const [newMethod, setNewMethod] = useState({ name: '', icon: '💵' })
+
+  useEffect(() => { fetchTenantPaymentMethods(tenant.id).then(setMethods) }, [tenant.id])
+
+  const icons = ['💵', '💳', '📱', '🍪', '🏦', '🪙', '🧾', '🤑']
+  const addMethod = () => {
+    if (!newMethod.name) return
+    const m = { id: `pm${Date.now()}`, tenant_id: tenant.id, name: newMethod.name, icon: newMethod.icon, active: true }
+    setMethods(prev => [...prev, m]); upsertPaymentMethod(m); setNewMethod({ name: '', icon: '💵' }); setShowAdd(false)
+  }
+  const startEdit = (m: any) => { setEditingId(m.id); setEditForm({ name: m.name, icon: m.icon }) }
+  const saveEdit = (id: string) => {
+    if (!editForm.name) return
+    setMethods(prev => prev.map(m => m.id === id ? { ...m, name: editForm.name, icon: editForm.icon } : m))
+    upsertPaymentMethod({ id, tenant_id: tenant.id, name: editForm.name, icon: editForm.icon }); setEditingId(null)
+  }
+  const toggleActive = (id: string) => {
+    setMethods(prev => prev.map(m => m.id === id ? { ...m, active: !m.active } : m))
+    const m = methods.find(x => x.id === id); if (m) upsertPaymentMethod({ ...m, active: !m.active, tenant_id: tenant.id })
+  }
+  const deleteMethod = (id: string) => { setMethods(prev => prev.filter(m => m.id !== id)); deletePaymentMethodById(id, tenant.id) }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div><h2 className="text-2xl font-bold text-white font-display">Pagamentos</h2><p className="text-dark-400 text-sm mt-1">{methods.length} formas de pagamento</p></div>
+        <button onClick={() => setShowAdd(true)} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Nova Forma</button>
+      </div>
+      <AnimatePresence>{showAdd && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-5 overflow-hidden">
+          <h3 className="font-semibold text-white mb-4">Nova Forma de Pagamento</h3>
+          <div className="flex items-end gap-4">
+            <div><label className="text-xs text-dark-400 block mb-1">Nome</label><input value={newMethod.name} onChange={e => setNewMethod({ ...newMethod, name: e.target.value })} className="input-dark" placeholder="Ex: Crédito" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Ícone</label><div className="flex gap-1">{icons.map(i => (
+              <button key={i} onClick={() => setNewMethod({ ...newMethod, icon: i })} className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center ${newMethod.icon === i ? 'bg-primary-500/20 border border-primary-500/50' : 'bg-dark-800 hover:bg-dark-700 border border-dark-700'}`}>{i}</button>
+            ))}</div></div>
+            <div className="flex gap-2 pb-0.5"><button onClick={addMethod} className="btn-primary text-sm">Adicionar</button><button onClick={() => setShowAdd(false)} className="btn-outline text-sm">Cancelar</button></div>
+          </div>
+        </motion.div>
+      )}</AnimatePresence>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {methods.map(m => editingId === m.id ? (
+          <motion.div key={m.id} layout className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex gap-1">{icons.map(i => (
+                <button key={i} onClick={() => setEditForm({ ...editForm, icon: i })} className={`w-8 h-8 rounded-lg text-base flex items-center justify-center ${editForm.icon === i ? 'bg-primary-500/20 border border-primary-500/50' : 'bg-dark-800 border border-dark-700'}`}>{i}</button>
+              ))}</div>
+              <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="input-dark flex-1" />
+            </div>
+            <div className="flex gap-2"><button onClick={() => saveEdit(m.id)} className="btn-primary text-sm">Salvar</button><button onClick={() => setEditingId(null)} className="btn-outline text-sm">Cancelar</button></div>
+          </motion.div>
+        ) : (
+          <motion.div key={m.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{m.icon}</span>
+                <span className="font-medium text-white">{m.name}</span>
+              </div>
+              <button onClick={() => toggleActive(m.id)} className={`w-10 h-6 rounded-full transition-all ${m.active ? 'bg-primary-500' : 'bg-dark-700'} relative`}>
+                <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${m.active ? 'left-5' : 'left-1'}`} />
+              </button>
+            </div>
+            <div className="flex items-center justify-between text-xs text-dark-400">
+              <button onClick={() => startEdit(m)} className="text-primary-400 hover:text-primary-300">Editar</button>
+              <button onClick={() => deleteMethod(m.id)} className="text-red-400 hover:text-red-300">Remover</button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function AnalyticsTab({ tenant }: { tenant: Tenant }) {
   return (
     <div className="space-y-6">
@@ -639,6 +885,11 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
     { day: 'Sábado', open: true, start: '10:00', end: '23:00' },
     { day: 'Domingo', open: false, start: '10:00', end: '21:00' },
   ])
+  const [storeName, setStoreName] = useState(tenant.name)
+  const [deliveryFee, setDeliveryFee] = useState(String(tenant.deliveryFee))
+  const [whatsapp, setWhatsapp] = useState(tenant.whatsapp)
+  const [minOrder, setMinOrder] = useState(String(tenant.minOrder))
+  const [storeAddress, setStoreAddress] = useState(tenant.address)
   const [dbStatus, setDbStatus] = useState<'checking' | 'ok' | 'error'>('checking')
   const [dbCount, setDbCount] = useState(0)
   const [lastOrders, setLastOrders] = useState<any[]>([])
@@ -732,11 +983,11 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
         <div>
           <h3 className="font-semibold text-white mb-4">Informações da Loja</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-xs text-dark-400 block mb-1">Nome</label><input className="input-dark" defaultValue={tenant.name} /></div>
-            <div><label className="text-xs text-dark-400 block mb-1">Taxa de Entrega (R$)</label><input className="input-dark" defaultValue={tenant.deliveryFee.toFixed(2).replace('.', ',')} placeholder="0,00" /></div>
-            <div><label className="text-xs text-dark-400 block mb-1">WhatsApp</label><input className="input-dark" defaultValue={tenant.whatsapp} /></div>
-            <div><label className="text-xs text-dark-400 block mb-1">Mínimo p/ Pedido (R$)</label><input className="input-dark" defaultValue={tenant.minOrder.toFixed(2).replace('.', ',')} /></div>
-            <div className="sm:col-span-2"><label className="text-xs text-dark-400 block mb-1">Endereço</label><input className="input-dark w-full" defaultValue={tenant.address} /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Nome</label><input className="input-dark" value={storeName} onChange={e => setStoreName(e.target.value)} /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Taxa de Entrega (R$)</label><input className="input-dark" value={deliveryFee} onChange={e => setDeliveryFee(e.target.value)} placeholder="0,00" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">WhatsApp</label><input className="input-dark" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Mínimo p/ Pedido (R$)</label><input className="input-dark" value={minOrder} onChange={e => setMinOrder(e.target.value)} /></div>
+            <div className="sm:col-span-2"><label className="text-xs text-dark-400 block mb-1">Endereço</label><input className="input-dark w-full" value={storeAddress} onChange={e => setStoreAddress(e.target.value)} /></div>
             <div className="sm:col-span-2">
               <label className="text-xs text-dark-400 block mb-1">Mensagem / Banner do App</label>
               <div className="flex gap-2">
@@ -839,6 +1090,10 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             const { data: { session } } = await supabase.auth.getSession()
             const token = session?.access_token || ''
             const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ tenantId: tenant.id, banner, stepMessages, itemIcons, itemPrices }) })
+            const openDays = workingDays.filter(d => d.open)
+            const hoursStr = openDays.length > 0 ? `${openDays[0].start} - ${openDays[openDays.length - 1].end}` : 'Fechado'
+            const wh = workingDays.map(d => `${d.open ? '' : '(Fechado) '}${d.day}: ${d.open ? `${d.start} às ${d.end}` : '-'}`).join('; ')
+            await updateTenant(tenant.id, { name: storeName, delivery_fee: parseFloat(deliveryFee) || 0, whatsapp, min_order: parseFloat(minOrder) || 0, address: storeAddress, working_hours: wh })
             if (r.ok) setBannerMsg('✅ Todas as configurações salvas!')
             else { const d = await r.json(); setBannerMsg(`Erro: ${d.error}`) }
             setTimeout(() => setBannerMsg(''), 3000)

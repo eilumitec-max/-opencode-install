@@ -99,3 +99,53 @@ export async function fetchOrdersByTenant(tenantId: string): Promise<any[]> {
   const { data } = await supabase.from('orders').select('*').eq('tenant_id', tenantId).order('created_at', { ascending: false })
   return data || []
 }
+
+export async function fetchTenantSizes(tenantId: string): Promise<any[]> {
+  const { data } = await supabase.from('sizes').select('*').eq('tenant_id', tenantId).order('order')
+  return data || []
+}
+
+export async function upsertSize(size: any) {
+  const { error } = await supabase.from('sizes').upsert(size)
+  return error
+}
+
+export async function deleteSizeById(id: string, tenantId: string) {
+  const { error } = await supabase.from('sizes').delete().match({ id, tenant_id: tenantId })
+  return error
+}
+
+export async function fetchTenantTypes(tenantId: string): Promise<any[]> {
+  const { data } = await supabase.from('types').select('*').eq('tenant_id', tenantId).order('order')
+  return data || []
+}
+
+export async function upsertType(type: any) {
+  const { error } = await supabase.from('types').upsert(type)
+  return error
+}
+
+export async function deleteTypeById(id: string, tenantId: string) {
+  const { error } = await supabase.from('types').delete().match({ id, tenant_id: tenantId })
+  return error
+}
+
+export async function fetchTenantPaymentMethods(tenantId: string): Promise<any[]> {
+  const { data } = await supabase.from('payment_methods').select('*').eq('tenant_id', tenantId)
+  return data || []
+}
+
+export async function upsertPaymentMethod(pm: any) {
+  const { error } = await supabase.from('payment_methods').upsert(pm)
+  return error
+}
+
+export async function deletePaymentMethodById(id: string, tenantId: string) {
+  const { error } = await supabase.from('payment_methods').delete().match({ id, tenant_id: tenantId })
+  return error
+}
+
+export async function updateTenant(tenantId: string, fields: Record<string, any>) {
+  const { error } = await supabase.from('tenants').update(fields).eq('id', tenantId)
+  return error
+}
