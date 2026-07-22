@@ -14,6 +14,9 @@ interface OrderState {
   type: string; size: string; base: string; toppings: string[]; fruits: string[]; extras: string[]
 }
 
+const orderingSteps: Step[] = ['type', 'size', 'toppings', 'fruits', 'extras', 'cart']
+const stepToCategory: Record<string, string> = { toppings: 'Coberturas', fruits: 'Frutas', extras: 'Complementos' }
+
 const sizeOptions = ['300 ml', '500 ml', '700 ml', '1 Litro']
 const sizePrices: Record<string, string> = { '300 ml': 'R$ 15,00', '500 ml': 'R$ 19,90', '700 ml': 'R$ 24,90', '1 Litro': 'R$ 32,90' }
 const typeOptions = ['Açaí Tradicional', 'Açaí Zero Açúcar', 'Creme de Cupuaçu', 'Sorvete de Creme', 'Sorvete de Chocolate', 'Sorvete de Morango']
@@ -57,6 +60,7 @@ export default function TenantAppPage() {
   const [stepMessages, setStepMessages] = useState<Record<string, string>>({})
   const [itemIconsOverrides, setItemIconsOverrides] = useState<Record<string, string>>({})
   const [toast, setToast] = useState('')
+  const [errorModal, setErrorModal] = useState('')
   const [installPrompt, setInstallPrompt] = useState<any>(null)
   const [showInstall, setShowInstall] = useState(false)
   const [dynamicToppings, setDynamicToppings] = useState<string[] | null>(null)
@@ -64,6 +68,21 @@ export default function TenantAppPage() {
   const [dynamicExtras, setDynamicExtras] = useState<string[] | null>(null)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
+  const showError = (msg: string) => { setErrorModal(msg) }
+
+  const isStepVisible = (s: Step): boolean => {
+    const catName = stepToCategory[s]
+    if (!catName) return true
+    if (dynamicToppings === null) return true
+    if (s === 'toppings' && dynamicToppings !== null) return dynamicToppings.length > 0
+    if (s === 'fruits' && dynamicFruits !== null) return dynamicFruits.length > 0
+    if (s === 'extras' && dynamicExtras !== null) return dynamicExtras.length > 0
+    return true
+  }
+
+  const visibleSteps = orderingSteps.filter(isStepVisible)
+  const currentIdx = visibleSteps.indexOf(step)
+  const progress = currentIdx >= 0 ? ((currentIdx + 1) / visibleSteps.length) * 100 : 0
 
   useEffect(() => {
     if (!slug) return
@@ -92,6 +111,14 @@ export default function TenantAppPage() {
     })
   }, [slug])
 
+  useEffect(() => {
+    if (orderingSteps.includes(step) && !isStepVisible(step)) {
+      const next = orderingSteps.find(s => isStepVisible(s)) || 'cart'
+      clearOrderForSkipped(step)
+      setStep(next)
+    }
+  }, [dynamicToppings, dynamicFruits, dynamicExtras])
+
   const itemIcons = { ...defaultIcons, ...itemIconsOverrides }
 
   useEffect(() => {
@@ -116,9 +143,29 @@ export default function TenantAppPage() {
     if (installPrompt) { installPrompt.prompt(); installPrompt.userChoice.then(() => setShowInstall(false)) }
   }
 
-  const goTo = (next: Step) => { setHistory(prev => [...prev, step]); setStep(next) }
+  const goTo = (target: Step) => {
+    setHistory(prev => [...prev, step])
+    if (orderingSteps.includes(target)) {
+      const idx = orderingSteps.indexOf(target)
+      for (let i = idx; i < orderingSteps.length; i++) {
+        if (!isStepVisible(orderingSteps[i])) { clearOrderForSkipped(orderingSteps[i]); continue }
+        setStep(orderingSteps[i]); return
+      }
+    }
+    setStep(target)
+  }
   const goBack = () => {
-    if (history.length > 0) { const prev = history[history.length - 1]; setHistory(h => h.slice(0, -1)); setStep(prev) }
+    if (history.length > 0) {
+      const prev = history[history.length - 1]
+      setHistory(h => h.slice(0, -1))
+      const pIdx = orderingSteps.indexOf(prev)
+      if (pIdx >= 0) {
+        for (let i = pIdx; i >= 0; i--) {
+          if (isStepVisible(orderingSteps[i])) { setStep(orderingSteps[i]); return }
+        }
+      }
+      setStep(prev)
+    }
   }
   const toggleItem = (arr: string[], item: string) => arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item]
   const getPrice = () => {
@@ -143,9 +190,11 @@ export default function TenantAppPage() {
       customerName={customerName} customerPhone={customerPhone} order={order} />
   )
 
-  const progressSteps: Step[] = ['type', 'size', 'toppings', 'fruits', 'extras', 'cart']
-  const currentIdx = progressSteps.indexOf(step)
-  const progress = currentIdx >= 0 ? ((currentIdx + 1) / progressSteps.length) * 100 : 0
+  const clearOrderForSkipped = (s: Step) => {
+    if (s === 'toppings') setOrder(prev => ({ ...prev, toppings: [] }))
+    if (s === 'fruits') setOrder(prev => ({ ...prev, fruits: [] }))
+    if (s === 'extras') setOrder(prev => ({ ...prev, extras: [] }))
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
@@ -318,8 +367,8 @@ export default function TenantAppPage() {
                   <span className="text-dark-700">{tenant.address}</span>
                 </div>
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => {
-                  if (!customerName.trim()) { showToast('Digite seu nome primeiro!'); return }
-                  if (customerPhone.length < 11) { showToast('Digite um telefone válido!'); return }
+                  if (!customerName.trim()) { showError('O campo nome está vazio. Por favor, digite seu nome completo para continuar.'); return }
+                  if (customerPhone.length < 11) { showError('O telefone informado é inválido. Verifique se o número contém DDD e 8-9 dígitos.'); return }
                   goTo('checkout')
                 }} className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2" style={{ backgroundColor: tenant.primaryColor }}>Ir para Pagamento <ArrowRight className="w-4 h-4" /></motion.button>
               </div>
@@ -355,9 +404,9 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
 }) {
   const [phase, setPhase] = useState<'phone' | 'register'>('phone')
   const [looking, setLooking] = useState(false)
-  const [toast, setToast] = useState('')
+  const [errorModal, setErrorModal] = useState('')
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
+  const showError = (msg: string) => { setErrorModal(msg) }
 
   const lookupCustomer = async (phone: string) => {
     const digits = phone.replace(/\D/g, '')
@@ -400,7 +449,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
             </div>
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               onClick={() => {
-                if (!customerName.trim()) { showToast('Digite seu nome!'); return }
+                if (!customerName.trim()) { showError('O campo nome é obrigatório. Por favor, digite seu nome completo para continuar.'); return }
                 handleRegister()
               }}
               className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all disabled:opacity-40"
@@ -409,14 +458,27 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
             </motion.button>
           </motion.div>
 
-          <AnimatePresence>
-            {toast && (
-              <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
-                className="fixed bottom-6 left-4 right-4 z-50 max-w-md mx-auto">
-                <div className="bg-red-500 text-white rounded-2xl px-5 py-3.5 shadow-2xl text-sm font-semibold text-center">⚠️ {toast}</div>
+        <AnimatePresence>
+          {errorModal && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+              onClick={() => setErrorModal('')}>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4"
+                onClick={e => e.stopPropagation()}>
+                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+                  <span className="text-3xl">⚠️</span>
+                </div>
+                <p className="font-semibold text-dark-900 text-lg">Atenção</p>
+                <p className="text-dark-500 text-sm">{errorModal}</p>
+                <button onClick={() => setErrorModal('')}
+                  className="w-full py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-all">
+                  Entendi
+                </button>
               </motion.div>
-            )}
-          </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
         </div>
       </div>
     )
@@ -440,7 +502,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               onClick={() => {
                 const digits = customerPhone.replace(/\D/g, '')
-                if (digits.length < 10) { showToast('Digite um telefone com DDD e número válido!'); return }
+                if (digits.length < 10) { showError('O telefone informado é inválido. Digite um número com DDD, por exemplo: (11) 99999-8888.'); return }
                 lookupCustomer(customerPhone)
               }}
               className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all disabled:opacity-40"
@@ -463,10 +525,23 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
         </motion.div>
 
         <AnimatePresence>
-          {toast && (
-            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
-              className="fixed bottom-6 left-4 right-4 z-50 max-w-md mx-auto">
-              <div className="bg-red-500 text-white rounded-2xl px-5 py-3.5 shadow-2xl text-sm font-semibold text-center">⚠️ {toast}</div>
+          {errorModal && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+              onClick={() => setErrorModal('')}>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4"
+                onClick={e => e.stopPropagation()}>
+                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+                  <span className="text-3xl">⚠️</span>
+                </div>
+                <p className="font-semibold text-dark-900 text-lg">Atenção</p>
+                <p className="text-dark-500 text-sm">{errorModal}</p>
+                <button onClick={() => setErrorModal('')}
+                  className="w-full py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-all">
+                  Entendi
+                </button>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
