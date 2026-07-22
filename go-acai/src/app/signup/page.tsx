@@ -22,10 +22,19 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  function translateError(msg: string) {
+    const map: Record<string, string> = {
+      'A user with this email address has already been registered': 'Este email já está cadastrado. Faça login ou use outro email.',
+      'Password should be at least 6 characters': 'A senha deve ter no mínimo 6 caracteres.',
+      'Unable to validate email address: invalid format': 'Email inválido. Digite um email válido.',
+    }
+    return map[msg] || msg
+  }
+
   const handleSignup = async () => {
     setLoading(true); setError('')
     const { error: signInError } = await supabase.auth.signUp({ email, password })
-    if (signInError) { setError(signInError.message); setLoading(false); return }
+    if (signInError) { setError(translateError(signInError.message)); setLoading(false); return }
 
     const res = await fetch('/api/signup', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },

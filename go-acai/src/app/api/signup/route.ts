@@ -2,11 +2,20 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { sendWelcomeEmail } from '@/lib/email'
 
+function translateError(msg: string) {
+  const map: Record<string, string> = {
+    'A user with this email address has already been registered': 'Este email já está cadastrado. Faça login ou use outro email.',
+    'Password should be at least 6 characters': 'A senha deve ter no mínimo 6 caracteres.',
+    'Unable to validate email address: invalid format': 'Email inválido. Digite um email válido.',
+  }
+  return map[msg] || msg
+}
+
 export async function POST(request: Request) {
   try {
     const { email, password, storeName, plan } = await request.json()
     if (!email || !password || !storeName) {
-      return NextResponse.json({ error: 'Email, password and store name required' }, { status: 400 })
+      return NextResponse.json({ error: 'Email, senha e nome da loja são obrigatórios.' }, { status: 400 })
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -16,7 +25,7 @@ export async function POST(request: Request) {
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email, password, email_confirm: true,
     })
-    if (authError) return NextResponse.json({ error: authError.message }, { status: 400 })
+    if (authError) return NextResponse.json({ error: translateError(authError.message) }, { status: 400 })
 
     const tenantId = `t${Date.now()}`
     const slug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `loja-${tenantId}`
