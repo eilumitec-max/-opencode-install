@@ -1,22 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Share2, Plus } from 'lucide-react'
 
 export default function InstallPrompt() {
   const pathname = usePathname()
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const deferredRef = useRef<any>(null)
   const [show, setShow] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
   const [isIos, setIsIos] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
   const [appName, setAppName] = useState('')
+  const [, forceRender] = useState(0)
 
   useEffect(() => {
     setShow(false)
-    setDeferredPrompt(null)
     const match = pathname.match(/^\/app\/([^/]+)/)
     if (!match) return
     const slug = match[1]
@@ -46,11 +46,16 @@ export default function InstallPrompt() {
 
     const handler = (e: Event) => {
       e.preventDefault()
-      setDeferredPrompt(e)
+      deferredRef.current = e
+      forceRender(n => n + 1)
       setTimeout(() => setShow(true), 2000)
     }
 
-    window.addEventListener('beforeinstallprompt', handler)
+    if (deferredRef.current) {
+      setTimeout(() => setShow(true), 2000)
+    } else {
+      window.addEventListener('beforeinstallprompt', handler)
+    }
 
     const timeout = setTimeout(() => {
       setShow(true)
@@ -63,14 +68,15 @@ export default function InstallPrompt() {
   }, [pathname])
 
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt()
-      const result = await deferredPrompt.userChoice
+    const prompt = deferredRef.current
+    if (prompt) {
+      prompt.prompt()
+      const result = await prompt.userChoice
       if (result.outcome === 'accepted') {
         setShow(false)
         setIsInstalled(true)
       }
-      setDeferredPrompt(null)
+      deferredRef.current = null
     } else {
       setShow(false)
       localStorage.setItem('goacai_install_dismissed', '1')
@@ -112,7 +118,7 @@ export default function InstallPrompt() {
                   : `Instale o app ${appName} no seu celular para receber notificações em tempo real e acessar com 1 clique!`}
               </p>
             </div>
-            {!isIos && deferredPrompt && (
+            {!isIos && deferredRef.current && (
               <button
                 onClick={handleInstall}
                 className="w-full py-3.5 rounded-2xl text-white font-bold transition-all bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 shadow-lg"
@@ -120,7 +126,7 @@ export default function InstallPrompt() {
                 <Download className="w-5 h-5 inline mr-2" />Instalar Agora
               </button>
             )}
-            {!isIos && !deferredPrompt && (
+            {!isIos && !deferredRef.current && (
               <p className="text-sm text-dark-500">Abra este site no Chrome ou Edge para instalar o app automaticamente.</p>
             )}
             {isIos && (
