@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, Download } from 'lucide-react'
+import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, Download, X } from 'lucide-react'
 import { getTenantBySlug, type Tenant, type TenantProduct } from '@/lib/tenants'
 import { supabase } from '@/lib/supabase'
 import { insertOrder, upsertCustomer, fetchCustomerByPhone } from '@/lib/supabase-queries'
@@ -81,14 +81,6 @@ export default function TenantAppPage() {
   const sm = (key: string, fallback: string) => stepMessages[key] || fallback
   const getIcon = (name: string) => itemIconsOverrides[name] || itemIcons[name] || '✨'
 
-  const handleInstall = async () => {
-    if (!installPrompt) return
-    installPrompt.prompt()
-    const result = await installPrompt.userChoice
-    if (result.outcome === 'accepted') setShowInstall(false)
-    setInstallPrompt(null)
-  }
-
   if (!tenant) return (
     <div className="min-h-screen bg-dark-950 flex items-center justify-center">
       <div className="text-center text-dark-400"><p className="text-4xl mb-4">🔍</p><p className="font-bold text-white">Loja não encontrada</p><p className="text-sm mt-1">Verifique o link e tente novamente</p></div>
@@ -143,7 +135,6 @@ export default function TenantAppPage() {
             <div className="px-4 pb-3">
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary-50 text-secondary-700 text-xs"><Package className="w-4 h-4" /><span>Entrega grátis • Pedido mínimo R$ {tenant.minOrder.toFixed(2).replace('.', ',')}</span></div>
             </div>
-          )}
           {tenant.banner && !['cart', 'checkout', 'tracking'].includes(step) && (
             <div className="px-4 pb-3">
               <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200 text-primary-800 text-xs leading-relaxed font-medium">

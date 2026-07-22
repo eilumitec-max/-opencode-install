@@ -562,19 +562,12 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
             <button key={f} onClick={() => setFilter(f as any)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filter === f ? 'bg-primary-500 text-white' : 'bg-dark-800 text-dark-400 hover:text-white'}`}>
               {f === 'all' ? 'Todos' : statusLabels[f]}
             </button>
-          ))}
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-      <div className="space-y-3">
-        {filtered.length === 0 && (
-          <p className="text-center text-dark-400 py-12 text-sm">Nenhum pedido encontrado. Os pedidos feitos pelos clientes no app aparecerão aqui.</p>
-        )}
-        {filtered.map(order => {
-          const next = nextStatus[order.status]
-          return (
-            <motion.div key={order.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
+      )}
                   <span className="font-bold text-white">{order.id}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyles[order.status]}`}>{statusLabels[order.status]}</span>
                 </div>
@@ -669,6 +662,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
   const [stepMessages, setStepMessages] = useState<Record<string, string>>({
     type: '', size: '', toppings: '', fruits: '', extras: '',
   })
+  const [itemIcons, setItemIcons] = useState<Record<string, string>>({})
   const [bannerMsg, setBannerMsg] = useState('')
   const [workingDays, setWorkingDays] = useState([
     { day: 'Segunda-feira', open: true, start: '09:00', end: '22:00' },
@@ -688,6 +682,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
     fetch(`/api/banner?tenantId=${tenant.id}`).then(r => r.json()).then(d => {
       if (d.banner) setBanner(d.banner)
       if (d.stepMessages) setStepMessages(prev => ({ ...prev, ...d.stepMessages }))
+      if (d.itemIcons) setItemIcons(d.itemIcons)
     }).catch(() => {})
   }, [tenant.id])
 
@@ -781,7 +776,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
                 <input className="input-dark flex-1" value={banner} onChange={e => setBanner(e.target.value)} placeholder="Ex: 🎉 Cliente novo? Cupom BEMVINDO e ganhe 10% off!" />
                 <button onClick={async () => {
                   setBannerMsg('Salvando...')
-                  const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: tenant.id, banner, stepMessages }) })
+                  const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: tenant.id, banner, stepMessages, itemIcons }) })
                   if (r.ok) setBannerMsg('✅ Salvo!')
                   else { const d = await r.json(); setBannerMsg(`Erro: ${d.error}`) }
                   setTimeout(() => setBannerMsg(''), 3000)
@@ -833,6 +828,19 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
               {typeof window !== 'undefined' ? window.location.origin : ''}/app/{tenant.slug}
             </a>
             <p className="text-xs text-dark-400 mt-2">Compartilhe este link com seus clientes para eles fazerem pedidos.</p>
+          </div>
+        </div>
+
+        <div className="border-t border-dark-800 pt-6">
+          <h3 className="font-semibold text-white mb-4">Ícones dos Itens</h3>
+          <p className="text-xs text-dark-500 mb-3">Emojis que aparecem ao lado de cada item no app. Pode personalizar cada um.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-80 overflow-y-auto">
+            {['Leite Condensado', 'Nutella', 'Chocolate', 'Caramelo', 'Morango', 'Doce de Leite', 'Leite Ninho', 'Creme de Avelã', 'Banana', 'Kiwi', 'Uva', 'Manga', 'Abacaxi', 'Maçã', 'Pera', 'Maracujá', 'Coco', 'Granola', 'Paçoca', 'Leite em Pó', 'Castanha', 'Confete', 'Ovomaltine', 'Amendoim', 'Coco Ralado', 'Chia', "MM's"].map(name => (
+              <div key={name} className="flex items-center gap-2">
+                <input className="w-9 h-9 text-center rounded-lg bg-dark-800 border border-dark-700 text-white text-base outline-none focus:border-primary-500/50" value={itemIcons[name] || ''} onChange={e => setItemIcons(prev => ({ ...prev, [name]: e.target.value }))} maxLength={2} />
+                <span className="text-xs text-dark-400 truncate">{name}</span>
+              </div>
+            ))}
           </div>
         </div>
 
