@@ -1,19 +1,18 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Share2, Plus } from 'lucide-react'
+import { getDeferredPrompt, clearDeferredPrompt } from '@/lib/install-store'
 
 export default function InstallPrompt() {
   const pathname = usePathname()
-  const deferredRef = useRef<any>(null)
   const [show, setShow] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
   const [isIos, setIsIos] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
   const [appName, setAppName] = useState('')
-  const [, forceRender] = useState(0)
 
   useEffect(() => {
     setShow(false)
@@ -44,18 +43,18 @@ export default function InstallPrompt() {
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
     setIsIos(ios)
 
-    const handler = (e: Event) => {
-      e.preventDefault()
-      deferredRef.current = e
-      forceRender(n => n + 1)
+    if (getDeferredPrompt()) {
       setTimeout(() => setShow(true), 2000)
     }
 
-    if (deferredRef.current) {
-      setTimeout(() => setShow(true), 2000)
-    } else {
-      window.addEventListener('beforeinstallprompt', handler)
+    const handler = (e: Event) => {
+      e.preventDefault()
+      if (!show) {
+        setTimeout(() => setShow(true), 2000)
+      }
     }
+
+    window.addEventListener('beforeinstallprompt', handler)
 
     const timeout = setTimeout(() => {
       setShow(true)
@@ -67,10 +66,8 @@ export default function InstallPrompt() {
     }
   }, [pathname])
 
-  const [manualSteps, setManualSteps] = useState(false)
-
   const handleInstall = async () => {
-    const prompt = deferredRef.current
+    const prompt = getDeferredPrompt()
     if (prompt) {
       prompt.prompt()
       const result = await prompt.userChoice
@@ -78,9 +75,7 @@ export default function InstallPrompt() {
         setShow(false)
         setIsInstalled(true)
       }
-      deferredRef.current = null
-    } else {
-      setManualSteps(true)
+      clearDeferredPrompt()
     }
   }
 
@@ -119,27 +114,7 @@ export default function InstallPrompt() {
                   : `Instale o app ${appName} no seu celular para receber notificações em tempo real e acessar com 1 clique!`}
               </p>
             </div>
-            {!isIos && !manualSteps && (
-              <button
-                onClick={handleInstall}
-                className="w-full py-3.5 rounded-2xl text-white font-bold transition-all bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 shadow-lg"
-              >
-                <Download className="w-5 h-5 inline mr-2" />Instalar Agora
-              </button>
-            )}
-            {!isIos && manualSteps && (
-              <div className="space-y-3 text-left">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50">
-                  <div className="w-8 h-8 rounded-lg bg-dark-200 flex items-center justify-center text-sm font-bold text-dark-600">1</div>
-                  <p className="text-sm text-dark-700">Toque no menu <span className="font-bold text-dark-800">⋮</span> (3 pontinhos) do Chrome</p>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50">
-                  <div className="w-8 h-8 rounded-lg bg-dark-200 flex items-center justify-center text-sm font-bold text-dark-600">2</div>
-                  <p className="text-sm text-dark-700">Toque em <Download className="w-4 h-4 inline text-primary-500" /> Instalar aplicativo</p>
-                </div>
-              </div>
-            )}
-            {isIos && (
+            {isIos ? (
               <div className="space-y-3 text-left">
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50">
                   <div className="w-8 h-8 rounded-lg bg-dark-200 flex items-center justify-center text-sm font-bold text-dark-600">1</div>
@@ -150,6 +125,13 @@ export default function InstallPrompt() {
                   <p className="text-sm text-dark-700">Role e toque em <Plus className="w-4 h-4 inline text-primary-500" /> Adicionar à Tela de Início</p>
                 </div>
               </div>
+            ) : (
+              <button
+                onClick={handleInstall}
+                className="w-full py-3.5 rounded-2xl text-white font-bold transition-all bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 shadow-lg"
+              >
+                <Download className="w-5 h-5 inline mr-2" />Instalar Agora
+              </button>
             )}
             <button
               onClick={handleDismiss}
