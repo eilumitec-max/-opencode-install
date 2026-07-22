@@ -562,43 +562,51 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
             <button key={f} onClick={() => setFilter(f as any)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filter === f ? 'bg-primary-500 text-white' : 'bg-dark-800 text-dark-400 hover:text-white'}`}>
               {f === 'all' ? 'Todos' : statusLabels[f]}
             </button>
-                ))}
-              </div>
-            </div>
-          )}
+          ))}
         </div>
-      )}
-                  <span className="font-bold text-white">{order.id}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyles[order.status]}`}>{statusLabels[order.status]}</span>
+      </div>
+      <div className="space-y-4">
+        {filtered.length === 0 ? (
+          <p className="text-center text-dark-400 py-8 text-sm">Nenhum pedido encontrado.</p>
+        ) : (
+          filtered.map(order => {
+            const next = nextStatus[order.status]
+            return (
+              <motion.div key={order.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-white">{order.id}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyles[order.status]}`}>{statusLabels[order.status]}</span>
+                  </div>
+                  <span className="text-sm text-dark-400">{order.date}</span>
                 </div>
-                <span className="text-sm text-dark-400">{order.date}</span>
-              </div>
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
-                <div><span className="text-dark-400 block text-xs">Cliente</span><span className="text-white">{order.customer}</span>{order.phone && <span className="text-xs text-dark-400 block">{order.phone}</span>}</div>
-                <div><span className="text-dark-400 block text-xs">Itens</span><span className="text-dark-300">{order.items.join(', ')}</span></div>
-                <div><span className="text-dark-400 block text-xs">Pagamento</span><span className="text-white">{order.payment} - {order.method}</span></div>
-                <div><span className="text-dark-400 block text-xs">Total</span><span className="font-bold text-white">R$ {order.total.toFixed(2).replace('.', ',')}</span></div>
-              </div>
-              <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-dark-800">
-                {next && (
-                  <button onClick={() => updateStatus(order.id, next.next)} className={`px-4 py-1.5 rounded-lg text-xs font-medium text-white transition-all ${next.color}`}>
-                    {next.label}
-                  </button>
-                )}
-                {(order.status === 'pending' || order.status === 'preparing') && (
-                  <button onClick={() => updateStatus(order.id, 'cancelled')} className="px-4 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all">
-                    Cancelar
-                  </button>
-                )}
-                {(order.status === 'delivered' || order.status === 'cancelled') && (
-                  <button onClick={async () => { await deleteOrderById(order.id, tenant.id); setOrders(prev => prev.filter(o => o.id !== order.id)) }} className="px-4 py-1.5 rounded-lg text-xs font-medium bg-dark-700 text-dark-400 hover:bg-red-500/20 hover:text-red-400 transition-all">
-                    Apagar
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          )
-        })}
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
+                  <div><span className="text-dark-400 block text-xs">Cliente</span><span className="text-white">{order.customer}</span>{order.phone && <span className="text-xs text-dark-400 block">{order.phone}</span>}</div>
+                  <div><span className="text-dark-400 block text-xs">Itens</span><span className="text-dark-300">{order.items.join(', ')}</span></div>
+                  <div><span className="text-dark-400 block text-xs">Pagamento</span><span className="text-white">{order.payment} - {order.method}</span></div>
+                  <div><span className="text-dark-400 block text-xs">Total</span><span className="font-bold text-white">R$ {order.total.toFixed(2).replace('.', ',')}</span></div>
+                </div>
+                <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-dark-800">
+                  {next && (
+                    <button onClick={() => updateStatus(order.id, next.next)} className={`px-4 py-1.5 rounded-lg text-xs font-medium text-white transition-all ${next.color}`}>
+                      {next.label}
+                    </button>
+                  )}
+                  {(order.status === 'pending' || order.status === 'preparing') && (
+                    <button onClick={() => updateStatus(order.id, 'cancelled')} className="px-4 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all">
+                      Cancelar
+                    </button>
+                  )}
+                  {(order.status === 'delivered' || order.status === 'cancelled') && (
+                    <button onClick={async () => { await deleteOrderById(order.id, tenant.id); setOrders(prev => prev.filter(o => o.id !== order.id)) }} className="px-4 py-1.5 rounded-lg text-xs font-medium bg-dark-700 text-dark-400 hover:bg-red-500/20 hover:text-red-400 transition-all">
+                      Apagar
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )
+          })
+        )}
       </div>
     </div>
   )

@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const { tenantId, banner, stepMessages } = await req.json()
+  const { tenantId, banner, stepMessages, itemIcons } = await req.json()
   if (!tenantId) return NextResponse.json({ error: 'Missing tenantId' }, { status: 400 })
 
   const { data: existing } = await supabaseAdmin.storage.from('push-subs').download(`config-${tenantId}.json`)
