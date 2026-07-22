@@ -564,9 +564,15 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
   }
 
   const printOrder = (order: TenantOrder) => {
-    const w = window.open('', '_blank')
-    if (!w) return
-    w.document.write(`
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'fixed'
+    iframe.style.right = '-9999px'
+    iframe.style.width = '0'
+    iframe.style.height = '0'
+    iframe.style.border = 'none'
+    document.body.appendChild(iframe)
+    const doc = iframe.contentWindow!.document
+    doc.write(`
       <html><head><meta charset="utf-8"><title>${order.id}</title>
       <style>
         @page { margin: 0; size: 80mm auto; }
@@ -604,10 +610,12 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
         </div>
         <div class="total">TOTAL: R$ ${order.total.toFixed(2).replace('.', ',')}</div>
         <div class="footer">Obrigado pela preferência!</div>
-        <script>window.onload=function(){window.print();window.close()}</script>
       </body></html>
     `)
-    w.document.close()
+    doc.close()
+    iframe.contentWindow!.focus()
+    iframe.contentWindow!.print()
+    setTimeout(() => document.body.removeChild(iframe), 1000)
   }
 
   return (
