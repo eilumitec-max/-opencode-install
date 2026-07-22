@@ -113,6 +113,12 @@ export default function InstallPrompt() {
                   : `Instale o app ${appName} no seu celular para receber notificações em tempo real e acessar com 1 clique!`}
               </p>
             </div>
+            <button
+              onClick={handleDismiss}
+              className="w-full py-3 rounded-xl border-2 border-dark-200 text-dark-600 font-semibold hover:bg-dark-50 transition-all text-sm"
+            >
+                  Agora não
+            </button>
             {!isIos && deferredPrompt && (
               <button
                 onClick={handleInstall}
@@ -136,12 +142,6 @@ export default function InstallPrompt() {
                 </div>
               </div>
             )}
-            <button
-              onClick={handleDismiss}
-              className="w-full py-3 rounded-xl border-2 border-dark-200 text-dark-600 font-semibold hover:bg-dark-50 transition-all text-sm"
-            >
-              Agora não
-            </button>
           </motion.div>
         </motion.div>
       )}
