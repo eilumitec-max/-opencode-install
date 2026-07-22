@@ -990,6 +990,21 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
           </div>
         )}
 
+        <div className="space-y-6">
+          {steps.map((s, i) => (
+            <motion.div key={s.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.15 }} className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${i < trackLevel ? 'bg-green-100' : i === trackLevel ? 'bg-primary-100' : 'bg-dark-100'}`}>{s.icon}</div>
+              <div className="flex-1">
+                <p className={`font-semibold ${i <= trackLevel ? 'text-dark-900' : 'text-dark-400'}`}>{s.label}</p>
+                <p className={`text-sm ${i === trackLevel ? 'text-primary-600' : 'text-dark-400'}`}>{i === trackLevel ? trackLabel : i < trackLevel ? '✓ Concluído' : ''}</p>
+              </div>
+              {i < trackLevel && <Check className="w-5 h-5 text-green-500" />}
+              {i === trackLevel && trackLevel < 3 && <div className="w-5 h-5 rounded-full border-2 border-accent-500 border-t-transparent animate-spin" />}
+              {i === trackLevel && trackLevel === 3 && <Check className="w-5 h-5 text-green-500" />}
+            </motion.div>
+          ))}
+        </div>
+
         {trackData && (
           <div className="rounded-2xl p-4 border border-dark-200 space-y-2">
             <p className="text-xs font-semibold text-dark-500 uppercase tracking-wider">Resumo do Pedido</p>
@@ -1005,20 +1020,6 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
           </div>
         )}
 
-        <div className="space-y-6">
-          {steps.map((s, i) => (
-            <motion.div key={s.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.15 }} className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${i < trackLevel ? 'bg-green-100' : i === trackLevel ? 'bg-primary-100' : 'bg-dark-100'}`}>{s.icon}</div>
-              <div className="flex-1">
-                <p className={`font-semibold ${i <= trackLevel ? 'text-dark-900' : 'text-dark-400'}`}>{s.label}</p>
-                <p className={`text-sm ${i === trackLevel ? 'text-primary-600' : 'text-dark-400'}`}>{i === trackLevel ? trackLabel : i < trackLevel ? '✓ Concluído' : ''}</p>
-              </div>
-              {i < trackLevel && <Check className="w-5 h-5 text-green-500" />}
-              {i === trackLevel && trackLevel < 3 && <div className="w-5 h-5 rounded-full border-2 border-accent-500 border-t-transparent animate-spin" />}
-              {i === trackLevel && trackLevel === 3 && <Check className="w-5 h-5 text-green-500" />}
-            </motion.div>
-          ))}
-        </div>
         {trackLevel >= 3 ? (
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
             onClick={handleBuyAgain}
