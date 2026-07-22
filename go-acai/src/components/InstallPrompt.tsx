@@ -67,6 +67,8 @@ export default function InstallPrompt() {
     }
   }, [pathname])
 
+  const [manualSteps, setManualSteps] = useState(false)
+
   const handleInstall = async () => {
     const prompt = deferredRef.current
     if (prompt) {
@@ -78,8 +80,7 @@ export default function InstallPrompt() {
       }
       deferredRef.current = null
     } else {
-      setShow(false)
-      localStorage.setItem('goacai_install_dismissed', '1')
+      setManualSteps(true)
     }
   }
 
@@ -118,7 +119,7 @@ export default function InstallPrompt() {
                   : `Instale o app ${appName} no seu celular para receber notificações em tempo real e acessar com 1 clique!`}
               </p>
             </div>
-            {!isIos && deferredRef.current && (
+            {!isIos && !manualSteps && (
               <button
                 onClick={handleInstall}
                 className="w-full py-3.5 rounded-2xl text-white font-bold transition-all bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 shadow-lg"
@@ -126,8 +127,17 @@ export default function InstallPrompt() {
                 <Download className="w-5 h-5 inline mr-2" />Instalar Agora
               </button>
             )}
-            {!isIos && !deferredRef.current && (
-              <p className="text-sm text-dark-500">Abra este site no Chrome ou Edge para instalar o app automaticamente.</p>
+            {!isIos && manualSteps && (
+              <div className="space-y-3 text-left">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50">
+                  <div className="w-8 h-8 rounded-lg bg-dark-200 flex items-center justify-center text-sm font-bold text-dark-600">1</div>
+                  <p className="text-sm text-dark-700">Toque no menu <span className="font-bold text-dark-800">⋮</span> (3 pontinhos) do Chrome</p>
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50">
+                  <div className="w-8 h-8 rounded-lg bg-dark-200 flex items-center justify-center text-sm font-bold text-dark-600">2</div>
+                  <p className="text-sm text-dark-700">Toque em <Download className="w-4 h-4 inline text-primary-500" /> Instalar aplicativo</p>
+                </div>
+              </div>
             )}
             {isIos && (
               <div className="space-y-3 text-left">
