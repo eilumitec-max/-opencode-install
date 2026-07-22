@@ -12,7 +12,6 @@ const testimonials = [
     location: 'Rio de Janeiro - RJ',
     avatar: 'CM',
     stars: 5,
-    metrics: { orders: '+180%', revenue: '+220%', time: '8 meses' },
   },
   {
     quote: 'Muito fácil de usar. Configurei tudo em 30 min. Meus clientes amam o link de vendas no WhatsApp. Pedido cai direto na cozinha, sem erro.',
@@ -21,43 +20,38 @@ const testimonials = [
     location: 'Belo Horizonte - MG',
     avatar: 'AP',
     stars: 5,
-    metrics: { orders: '+150%', revenue: '+190%', time: '5 meses' },
   },
   {
-    quote: 'Vale cada centavo. Antes perdia tempo no WhatsApp, anotava errado, cliente reclamava. Agora é automático. App na Play Store passou credibilidade.',
+    quote: 'Vale cada centavo. Antes perdia tempo no WhatsApp, anotava errado, cliente reclamava. Agora é automático. App PWA passou credibilidade.',
     author: 'Roberto Silva',
     role: 'Gerente - Sorveteiro do Bairro',
     location: 'Curitiba - PR',
     avatar: 'RS',
     stars: 5,
-    metrics: { orders: '+200%', revenue: '+170%', time: '1 ano' },
   },
   {
-    quote: 'Meu delivery ficou profissional. Tenho relatórios que mostram horário de pico, produto mais vendido, ticket médio. Decisões baseadas em dados.',
+    quote: 'Meu delivery ficou profissional. O painel mostra pedidos em tempo real, sei exatamente o que está acontecendo na cozinha.',
     author: 'Fernanda Costa',
     role: 'Proprietária - Açaí da Nanda',
     location: 'Porto Alegre - RS',
     avatar: 'FC',
     stars: 5,
-    metrics: { orders: '+160%', revenue: '+210%', time: '6 meses' },
   },
   {
-    quote: 'Suporte incrível. Tive dúvida na configuração de área de entrega, me atenderam no WhatsApp em 5 min. Migração do antigo sistema foi tranquila.',
+    quote: 'Suporte incrível. Tive dúvida na configuração, me atenderam no WhatsApp em 5 min. Migração do antigo sistema foi tranquila.',
     author: 'Lucas Oliveira',
     role: 'Sócio - Frutaçaí',
     location: 'Salvador - BA',
     avatar: 'LO',
     stars: 5,
-    metrics: { orders: '+140%', revenue: '+180%', time: '4 meses' },
   },
   {
-    quote: 'O sistema de fidelidade é show. Cliente acumula pontos, ganha cashback, indica amigos. Meu ticket médio subiu 35% só com isso.',
+    quote: 'O app é muito prático. Cliente monta o pedido sozinho, escolhe coberturas, frutas, tudo visual. Meu ticket médio aumentou.',
     author: 'Juliana Santos',
     role: 'Dona - Açaí da Ju',
     location: 'Fortaleza - CE',
     avatar: 'JS',
     stars: 5,
-    metrics: { orders: '+130%', revenue: '+200%', time: '7 meses' },
   },
 ]
 
@@ -80,13 +74,13 @@ export function Testimonials() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <span className="inline-block px-4 py-2 rounded-full bg-primary-100 text-primary-700 text-sm font-medium mb-4">
-            Aprovado por centenas de lojas
+            Depoimentos de clientes
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-dark-900 mb-4">
             O que <span className="text-gradient">donos de loja</span> dizem
           </h2>
           <p className="text-lg text-dark-500">
-            Mais de 500 lojas ativas. Nota 4.9 nas stores. Veja alguns casos reais.
+            Veja o que alguns donos de açaí e sorveteria estão falando.
           </p>
         </motion.div>
 
@@ -121,7 +115,7 @@ export function Testimonials() {
                     </blockquote>
 
                     <div className="border-t border-dark-200 pt-6">
-                      <div className="flex items-center gap-4 mb-4">
+                      <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-400 flex items-center justify-center text-white font-bold text-lg">
                           {testimonial.avatar}
                         </div>
@@ -130,15 +124,6 @@ export function Testimonials() {
                           <p className="text-sm text-dark-500">{testimonial.role}</p>
                           <p className="text-xs text-dark-400">{testimonial.location}</p>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        {Object.entries(testimonial.metrics).map(([key, value]) => (
-                          <div key={key} className="p-3 bg-primary-50 rounded-xl">
-                            <p className="font-bold text-primary-600">{value}</p>
-                            <p className="text-xs text-primary-500 capitalize">{key}</p>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </div>
@@ -190,23 +175,18 @@ export function Testimonials() {
           >
             <div className="flex items-center justify-center gap-8 flex-wrap">
               <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-display font-bold text-dark-900">500+</p>
-                <p className="text-sm text-dark-500">Lojas Ativas</p>
-              </div>
-              <div className="w-px h-8 bg-dark-200" />
-              <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-display font-bold text-dark-900">4.9★</p>
-                <p className="text-sm text-dark-500">Média Stores</p>
-              </div>
-              <div className="w-px h-8 bg-dark-200" />
-              <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-display font-bold text-dark-900">99.9%</p>
-                <p className="text-sm text-dark-500">Uptime</p>
-              </div>
-              <div className="w-px h-8 bg-dark-200" />
-              <div className="text-center">
                 <p className="text-3xl sm:text-4xl font-display font-bold text-dark-900">R$ 0</p>
                 <p className="text-sm text-dark-500">Taxa por Pedido</p>
+              </div>
+              <div className="w-px h-8 bg-dark-200" />
+              <div className="text-center">
+                <p className="text-3xl sm:text-4xl font-display font-bold text-dark-900">7 Dias</p>
+                <p className="text-sm text-dark-500">Teste Grátis</p>
+              </div>
+              <div className="w-px h-8 bg-dark-200" />
+              <div className="text-center">
+                <p className="text-3xl sm:text-4xl font-display font-bold text-dark-900">Zero</p>
+                <p className="text-sm text-dark-500">Fidelidade</p>
               </div>
             </div>
           </motion.div>

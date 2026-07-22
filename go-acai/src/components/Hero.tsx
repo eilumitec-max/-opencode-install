@@ -2,18 +2,18 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, Shield, Zap, Smartphone, CreditCard, Globe, Users } from 'lucide-react'
+import { ArrowRight, CheckCircle, Shield, Zap, Smartphone, Globe, Users, QrCode } from 'lucide-react'
 
 const features = [
-  { icon: Smartphone, title: 'App Próprio', desc: 'Seu app nas stores' },
-  { icon: CreditCard, title: 'Mercado Pago', desc: 'Pagamento integrado' },
+  { icon: Smartphone, title: 'App PWA', desc: 'Instala no celular' },
   { icon: Globe, title: 'Link de Vendas', desc: 'Venda pelo WhatsApp' },
+  { icon: QrCode, title: 'QR Code', desc: 'Mesa, balcão, delivery' },
   { icon: Users, title: 'Sem Fidelidade', desc: 'Cancele quando quiser' },
 ]
 
 const stats = [
   { value: '7 Dias', label: 'Teste Grátis' },
-  { value: 'R$ 15', label: '/mês (anuual)' },
+  { value: 'R$ 15', label: '/mês (anual)' },
   { value: '100%', label: 'Do lucro é seu' },
   { value: 'Zero', label: 'Fidelidade' },
 ]
@@ -116,8 +116,8 @@ export function Hero() {
                       <Smartphone className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-dark-900">App na Play Store & App Store</p>
-                      <p className="text-sm text-dark-500">Seu cliente baixa e pede direto</p>
+                      <p className="font-semibold text-dark-900">App PWA — Instala no Celular</p>
+                      <p className="text-sm text-dark-500">Seu cliente adiciona na tela inicial</p>
                     </div>
                   </div>
 
@@ -142,7 +142,7 @@ export function Hero() {
                       <Zap className="w-6 h-6 text-accent-500" />
                       <div>
                         <p className="font-semibold text-dark-900">Pedido Realizado!</p>
-                        <p className="text-sm text-dark-500">R$ 24,90 - Mercado Pago</p>
+                        <p className="text-sm text-dark-500">R$ 24,90 - PIX</p>
                       </div>
                     </div>
                     <Shield className="w-6 h-6 text-secondary-500" />

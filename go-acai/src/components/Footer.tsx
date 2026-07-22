@@ -15,7 +15,6 @@ const footerLinks = {
     { label: 'Demonstração', href: '/demo' },
   ],
   contato: [
-    { label: 'WhatsApp', href: 'https://wa.me/5511999999999' },
     { label: 'Email', href: 'mailto:oi@goacai.com.br' },
   ],
 }
@@ -23,7 +22,7 @@ const footerLinks = {
 const socialLinks = [
   { icon: Instagram, href: 'https://instagram.com/goacai', label: 'Instagram' },
   { icon: Facebook, href: 'https://facebook.com/goacai', label: 'Facebook' },
-  { icon: MessageSquare, href: 'https://wa.me/5511999999999', label: 'WhatsApp' },
+  { icon: MessageSquare, href: '#contato', label: 'WhatsApp' },
   { icon: Mail, href: 'mailto:oi@goacai.com.br', label: 'E-mail' },
 ]
 
@@ -119,7 +118,7 @@ export function Footer() {
         <div className="border-t border-dark-800 pt-8">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
             <p className="text-dark-500 text-sm">
-              © 2024 GO AÇAÍ. Todos os direitos reservados.
+              © 2026 GO AÇAÍ. Todos os direitos reservados.
             </p>
 
             <div className="flex items-center gap-6 text-sm text-dark-500">
@@ -129,13 +128,9 @@ export function Footer() {
               <span className="text-dark-500">Termos</span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-dark-500">CNPJ: 12.345.678/0001-90</span>
-              <div className="flex items-center gap-2">
-                <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">HTTPS</span>
-                <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">LGPD</span>
-                <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-400 rounded">PCI DSS</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">HTTPS</span>
+              <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">LGPD</span>
             </div>
           </div>
         </div>

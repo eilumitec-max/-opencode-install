@@ -24,7 +24,6 @@ const features = [
   'Atualizações automáticas + Novas features sem custo',
   'Suporte prioritário via WhatsApp e Email',
   'Funciona offline (PWA)',
-  ('Em breve: Mercado Pago, Cupons, Fidelidade, App nas Stores'),
 ]
 
 export function Pricing() {

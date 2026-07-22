@@ -7,7 +7,7 @@ const comparison = [
   {
     category: 'Custo & Modelo',
     items: [
-      { feature: 'Mensalidade fixa', goAcai: true, whatsapp: false, detail: 'R$ 29,90/mês sem surpresas' },
+      { feature: 'Mensalidade fixa', goAcai: true, whatsapp: false, detail: 'R$ 15/mês sem surpresas' },
       { feature: 'Sem taxa por pedido', goAcai: true, whatsapp: false, detail: 'Você fica com 100% do lucro' },
       { feature: 'Sem comissão oculta', goAcai: true, whatsapp: true, detail: 'Você fica com 100% do lucro' },
       { feature: 'Sem fidelidade', goAcai: true, whatsapp: true, detail: 'Cancela quando quiser' },
@@ -74,7 +74,7 @@ export function Comparison() {
             GO AÇAÍ vs <span className="text-primary-600">WhatsApp</span>
           </h2>
           <p className="text-lg text-dark-500">
-            Por que centenas de lojas migraram do WhatsApp para app próprio
+            Por que vale a pena ter um sistema de delivery próprio
           </p>
         </motion.div>
 
@@ -158,7 +158,7 @@ export function Comparison() {
               Pare de perder dinheiro com comissões
             </h3>
             <p className="text-primary-100 mb-6 max-w-2xl mx-auto">
-              Tenha seu próprio sistema de delivery por R$ 29,90/mês. Sem taxa por pedido, sem fidelidade.
+               Tenha seu próprio sistema de delivery por R$ 15/mês. Sem taxa por pedido, sem fidelidade.
               Seu app, suas vendas, seu lucro.
             </p>
             <button className="btn-accent text-lg px-10 py-4">

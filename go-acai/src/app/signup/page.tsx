@@ -6,9 +6,8 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 const plans = [
-  { name: 'Mensal', price: 'R$ 20', period: '/mês', features: ['Dashboard completo', 'App do cliente', '10 produtos', 'Suporte email'], popular: true },
-  { name: 'Trimestral', price: 'R$ 50', period: '/mês', features: ['Tudo do Mensal', 'Produtos ilimitados', 'Suporte prioritário'], popular: false },
-  { name: 'Anual', price: 'R$ 15', period: '/mês', features: ['Tudo do Trimestral', 'Domínio personalizado', 'API access'], popular: false },
+  { name: 'Mensal', price: 'R$ 20', period: '/mês', features: ['Dashboard completo', 'App do cliente', 'Suporte email'], popular: false },
+  { name: 'Anual', price: 'R$ 15', period: '/mês', features: ['Dashboard completo', 'App do cliente', 'Produtos ilimitados', 'Suporte prioritário'], popular: true },
 ]
 
 export default function SignupPage() {

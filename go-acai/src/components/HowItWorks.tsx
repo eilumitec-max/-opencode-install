@@ -55,20 +55,15 @@ const appFlow = [
 ]
 
 const adminModules = [
-  { icon: BarChart3, title: 'Dashboard', desc: 'Pedidos, faturamento, ticket médio, top produtos, clientes novos' },
-  { icon: ShoppingBag, title: 'Produtos', desc: 'Cadastro completo: fotos, preços, estoque, categorias, opcionais' },
-  { icon: Layers, title: 'Categorias', desc: 'Organize: Açaí, Sorvete, Acompanhamentos, Bebidas, Combos' },
-  { icon: Package, title: 'Pedidos', desc: 'Gestão total: status, impressão, histórico, cancelamento, reembolso' },
-  { icon: Users, title: 'Clientes', desc: 'Cadastro, histórico, favoritos, fidelidade, aniversariantes, segmentação' },
-  { icon: Tag, title: 'Promoções', desc: 'Cupons, frete grátis, desconto progressivo, primeira compra, validade' },
-  { icon: BarChart3, title: 'Relatórios', desc: 'Vendas por período, produto, hora, entregador, forma pagamento' },
-  { icon: CreditCard, title: 'Financeiro', desc: 'Recebíveis, split, antecipação, conciliação, extrato Mercado Pago' },
-  { icon: Truck, title: 'Entregadores', desc: 'Cadastro, rotas, rastreio, avaliação, comissão, documento' },
-  { icon: Settings, title: 'Configurações', desc: 'Horários, área entrega, taxas, impressoras, integrações, LGPD' },
-  { icon: QrCode, title: 'QR Code', desc: 'Mesa, balcão, delivery. Um QR para cada ponto de venda' },
-  { icon: Globe, title: 'Banner & Tema', desc: 'Hero, cores, fontes, modo escuro, sazonal (Natal, Páscoa)' },
-  { icon: MapPin, title: 'Área de Entrega', desc: 'Desenhe no mapa, taxa por km/região, tempo estimado' },
-  { icon: Clock, title: 'Horários', desc: 'Funcionamento, agendamento, preparo, feriados, exceções' },
+  { icon: BarChart3, title: 'Dashboard', desc: 'Pedidos em tempo real, faturamento do dia' },
+  { icon: ShoppingBag, title: 'Produtos', desc: 'Cadastro com fotos, preços, ativar/desativar' },
+  { icon: Layers, title: 'Categorias', desc: 'Organize produtos em categorias' },
+  { icon: Package, title: 'Pedidos', desc: 'Receber, confirmar, finalizar. Histórico completo' },
+  { icon: Settings, title: 'Configurações', desc: 'Nome, taxa, WhatsApp, horários, endereço' },
+  { icon: QrCode, title: 'QR Code', desc: 'Mesa, balcão, delivery. Um QR para cada ponto' },
+  { icon: Globe, title: 'Banner & Tema', desc: 'Cores, logo, banner animado' },
+  { icon: MapPin, title: 'Área de Entrega', desc: 'Taxa fixa de entrega configurável' },
+  { icon: Clock, title: 'Horários', desc: 'Horário de funcionamento' },
 ]
 
 export function HowItWorks() {
