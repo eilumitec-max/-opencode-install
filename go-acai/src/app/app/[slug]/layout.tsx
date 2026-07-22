@@ -1,10 +1,7 @@
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  return {
-    manifest: `/app/${params.slug}/manifest`,
-    other: {
-      'apple-mobile-web-app-title': params.slug,
-    },
-  }
+import type { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  return { manifest: `/app/${params.slug}/manifest` }
 }
 
 export default function AppSlugLayout({ children }: { children: React.ReactNode }) {
