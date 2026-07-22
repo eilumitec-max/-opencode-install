@@ -66,6 +66,7 @@ export default function TenantAppPage() {
   const [dynamicToppings, setDynamicToppings] = useState<string[] | null>(null)
   const [dynamicFruits, setDynamicFruits] = useState<string[] | null>(null)
   const [dynamicExtras, setDynamicExtras] = useState<string[] | null>(null)
+  const [itemPrices, setItemPrices] = useState({ toppingPrice: 1.5, fruitPrice: 0, extraPrice: 2.0 })
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
   const showError = (msg: string) => { setErrorModal(msg) }
@@ -129,6 +130,7 @@ export default function TenantAppPage() {
         setStepMessages(d.stepMessages)
       }
       if (d.itemIcons) setItemIconsOverrides(d.itemIcons)
+      if (d.itemPrices) setItemPrices(d.itemPrices)
     }).catch(() => {})
   }, [tenant?.id])
 
@@ -170,7 +172,7 @@ export default function TenantAppPage() {
   const toggleItem = (arr: string[], item: string) => arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item]
   const getPrice = () => {
     const base = order.size ? parseFloat(sizePrices[order.size]?.replace('R$ ', '').replace(',', '.')) || 19.90 : 19.90
-    return base + order.extras.length * 2 + order.toppings.length * 1.5
+    return base + order.toppings.length * itemPrices.toppingPrice + order.fruits.length * itemPrices.fruitPrice + order.extras.length * itemPrices.extraPrice
   }
   const orderTotal = getPrice()
   const deliveryFee = tenant?.deliveryFee || 0
@@ -295,7 +297,7 @@ export default function TenantAppPage() {
             {step === 'toppings' && (
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
-                  <AnimatedText text={sm('toppings', '🍫 Você tem direito a 2 coberturas grátis! (R$ 1,50 cada adicional)')} className="font-display text-base font-bold text-amber-800" />
+                  <AnimatedText text={sm('toppings', `🍫 Você tem direito a 2 coberturas grátis! (R$ ${itemPrices.toppingPrice.toFixed(2).replace('.', ',')} cada adicional)`)} className="font-display text-base font-bold text-amber-800" />
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {(dynamicToppings !== null ? dynamicToppings : toppingsList).map(item => (
@@ -304,6 +306,7 @@ export default function TenantAppPage() {
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-full border-2 transition-all ${order.toppings.includes(item) ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-dark-200 hover:border-primary-200 text-dark-700'}`}>
                       <span className="text-lg">{getIcon(item)}</span>
                       <span>{item}</span>
+                      {itemPrices.toppingPrice > 0 && <span className="text-xs text-dark-400">+R$ {itemPrices.toppingPrice.toFixed(2).replace('.', ',')}</span>}
                     </motion.button>
                   ))}
                 </div>
@@ -313,7 +316,7 @@ export default function TenantAppPage() {
             {step === 'fruits' && (
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
-                  <AnimatedText text={sm('fruits', '🍓 Você tem direito a 3 frutas grátis! Escolha as suas favoritas')} className="font-display text-base font-bold text-green-800" />
+                  <AnimatedText text={sm('fruits', `🍓 ${itemPrices.fruitPrice > 0 ? `R$ ${itemPrices.fruitPrice.toFixed(2).replace('.', ',')} cada fruta` : 'Você tem direito a 3 frutas grátis! Escolha as suas favoritas'}`)} className="font-display text-base font-bold text-green-800" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {(dynamicFruits !== null ? dynamicFruits : fruitsList).map(item => (
@@ -322,6 +325,7 @@ export default function TenantAppPage() {
                       className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${order.fruits.includes(item) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
                       <span className="text-xl">{getIcon(item)}</span>
                       <span className="font-medium text-dark-900">{item}</span>
+                      {itemPrices.fruitPrice > 0 && <span className="text-xs text-dark-500">+R$ {itemPrices.fruitPrice.toFixed(2).replace('.', ',')}</span>}
                     </motion.button>
                   ))}
                 </div>
@@ -331,7 +335,7 @@ export default function TenantAppPage() {
             {step === 'extras' && (
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200">
-                  <AnimatedText text={sm('extras', '🥜 Adicione quantos complementos quiser! (R$ 2,00 cada)')} className="font-display text-base font-bold text-purple-800" />
+                  <AnimatedText text={sm('extras', `🥜 Adicione quantos complementos quiser! (R$ ${itemPrices.extraPrice.toFixed(2).replace('.', ',')} cada)`)} className="font-display text-base font-bold text-purple-800" />
                 </div>
                 <div className="space-y-2">
                   {(dynamicExtras !== null ? dynamicExtras : extrasList).map(item => (
@@ -343,7 +347,7 @@ export default function TenantAppPage() {
                         {order.extras.includes(item) && <Check className="w-4 h-4 text-white" />}
                       </div>
                       <span className="font-medium text-dark-900 flex-1 text-left">{item}</span>
-                      <span className="text-sm text-dark-500">+R$ 2,00</span>
+                      <span className="text-sm text-dark-500">+R$ {itemPrices.extraPrice.toFixed(2).replace('.', ',')}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -356,9 +360,9 @@ export default function TenantAppPage() {
                 <p className="text-sm text-dark-500">Confira seu pedido antes de finalizar</p>
                 <div className="space-y-3 rounded-2xl p-4" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
                   <div className="flex justify-between items-center"><span className="font-semibold text-dark-900">{order.size} - {order.base}</span><span className="font-bold" style={{ color: tenant.primaryColor }}>{sizePrices[order.size] || 'R$ 19,90'}</span></div>
-                  {order.toppings.length > 0 && <div className="flex justify-between text-sm"><span className="text-dark-500">Coberturas ({order.toppings.length}x)</span><span className="text-dark-500">+R$ {(order.toppings.length * 1.5).toFixed(2).replace('.', ',')}</span></div>}
-                  {order.fruits.length > 0 && <div className="flex justify-between text-sm"><span className="text-dark-500">Frutas ({order.fruits.length}x)</span><span className="text-dark-500">Grátis</span></div>}
-                  {order.extras.length > 0 && <div className="flex justify-between text-sm"><span className="text-dark-500">Complementos ({order.extras.length}x)</span><span className="text-dark-500">+R$ {(order.extras.length * 2).toFixed(2).replace('.', ',')}</span></div>}
+                  {order.toppings.length > 0 && <div className="flex justify-between text-sm"><span className="text-dark-500">Coberturas ({order.toppings.length}x)</span><span className="text-dark-500">+R$ {(order.toppings.length * itemPrices.toppingPrice).toFixed(2).replace('.', ',')}</span></div>}
+                  {order.fruits.length > 0 && <div className="flex justify-between text-sm"><span className="text-dark-500">Frutas ({order.fruits.length}x)</span><span className="text-dark-500">{itemPrices.fruitPrice > 0 ? `+R$ ${(order.fruits.length * itemPrices.fruitPrice).toFixed(2).replace('.', ',')}` : 'Grátis'}</span></div>}
+                  {order.extras.length > 0 && <div className="flex justify-between text-sm"><span className="text-dark-500">Complementos ({order.extras.length}x)</span><span className="text-dark-500">+R$ {(order.extras.length * itemPrices.extraPrice).toFixed(2).replace('.', ',')}</span></div>}
                   {deliveryFee > 0 && <div className="flex justify-between text-sm"><span className="text-dark-500">Entrega</span><span className="text-dark-500">R$ {deliveryFee.toFixed(2).replace('.', ',')}</span></div>}
                   <div className="border-t pt-3 flex justify-between text-lg" style={{ borderColor: `${tenant.primaryColor}20` }}><span className="font-bold text-dark-900">Total</span><span className="font-bold" style={{ color: tenant.primaryColor }}>R$ {(orderTotal + deliveryFee).toFixed(2).replace('.', ',')}</span></div>
                 </div>

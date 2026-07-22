@@ -2,17 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X } from 'lucide-react'
+import { Download, X, Share2, Plus } from 'lucide-react'
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [show, setShow] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
   const [isIos, setIsIos] = useState(false)
+  const [isDismissed, setIsDismissed] = useState(false)
 
   useEffect(() => {
+    if (!window.location.pathname.startsWith('/app/')) return
+
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true)
+      return
+    }
+
+    if (localStorage.getItem('goacai_install_dismissed')) {
+      setIsDismissed(true)
       return
     }
 
@@ -23,84 +31,100 @@ export default function InstallPrompt() {
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e)
-      setShow(true)
+      setTimeout(() => setShow(true), 2000)
     }
 
     window.addEventListener('beforeinstallprompt', handler)
 
-    if (ios && isSafari) {
-      const visited = localStorage.getItem('goacai_install_prompt_ios')
-      if (!visited) {
-        setTimeout(() => setShow(true), 3000)
+    setTimeout(() => {
+      if (!show && !isInstalled && !localStorage.getItem('goacai_install_dismissed')) {
+        setShow(true)
       }
-    }
+    }, 5000)
 
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return
-    deferredPrompt.prompt()
-    const result = await deferredPrompt.userChoice
-    if (result.outcome === 'accepted') {
+    if (deferredPrompt) {
+      deferredPrompt.prompt()
+      const result = await deferredPrompt.userChoice
+      if (result.outcome === 'accepted') {
+        setShow(false)
+        setIsInstalled(true)
+      }
+      setDeferredPrompt(null)
+    } else {
       setShow(false)
-      setIsInstalled(true)
+      localStorage.setItem('goacai_install_dismissed', '1')
     }
-    setDeferredPrompt(null)
   }
 
   const handleDismiss = () => {
     setShow(false)
-    localStorage.setItem('goacai_install_prompt_ios', '1')
+    localStorage.setItem('goacai_install_dismissed', '1')
+    setIsDismissed(true)
   }
 
   return (
     <AnimatePresence>
-      {show && !isInstalled && (
+      {show && !isInstalled && !isDismissed && (
         <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 100 }}
-          className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.55)' }}
+          onClick={handleDismiss}
         >
-          <div className="bg-white rounded-2xl shadow-2xl border border-dark-200 p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-400 flex items-center justify-center text-2xl flex-shrink-0">🍇</div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-dark-900 text-sm">Instalar GO AÇAÍ</p>
-                  <button onClick={handleDismiss} className="p-1 -mr-1 rounded-lg hover:bg-dark-100 transition-colors">
-                    <X className="w-4 h-4 text-dark-400" />
-                  </button>
-                </div>
-                <p className="text-xs text-dark-500 mt-0.5">
-                  {isIos
-                    ? 'Toque em Compartilhar e depois "Adicionar à Tela de Início"'
-                    : 'Instale para receber notificações e acessar mais rápido'}
-                </p>
-              </div>
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.85, opacity: 0, y: 20 }}
+            className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-5"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center mx-auto shadow-lg">
+              <Download className="w-10 h-10 text-white" />
             </div>
-            {!isIos && (
+            <div>
+              <h2 className="text-xl font-bold font-display text-dark-900">Instalar App</h2>
+              <p className="text-dark-500 text-sm mt-1">
+                {isIos
+                  ? 'Instale o app na tela de início do seu iPhone para receber notificações e pedir mais rápido!'
+                  : 'Instale o app no seu celular para receber notificações em tempo real e acessar com 1 clique!'}
+              </p>
+            </div>
+            {!isIos && deferredPrompt && (
               <button
                 onClick={handleInstall}
-                className="w-full mt-3 py-2.5 rounded-xl text-white font-semibold text-sm bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 transition-all"
+                className="w-full py-3.5 rounded-2xl text-white font-bold transition-all bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 shadow-lg"
               >
-                Instalar App
+                <Download className="w-5 h-5 inline mr-2" />Instalar Agora
               </button>
             )}
+            {!isIos && !deferredPrompt && (
+              <p className="text-sm text-dark-500">Abra este site no Chrome ou Edge para instalar o app automaticamente.</p>
+            )}
             {isIos && (
-              <div className="mt-3 p-3 rounded-xl bg-dark-50 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-dark-600">
-                  <span className="w-6 h-6 rounded-full bg-dark-200 flex items-center justify-center text-xs font-bold">1</span>
-                  Toque em <span className="w-5 h-5 rounded bg-dark-200 flex items-center justify-center text-xs">📤</span> Compartilhar
+              <div className="space-y-3 text-left">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50">
+                  <div className="w-8 h-8 rounded-lg bg-dark-200 flex items-center justify-center text-sm font-bold text-dark-600">1</div>
+                  <p className="text-sm text-dark-700">Toque em <Share2 className="w-4 h-4 inline text-primary-500" /> Compartilhar</p>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-dark-600">
-                  <span className="w-6 h-6 rounded-full bg-dark-200 flex items-center justify-center text-xs font-bold">2</span>
-                  Role e toque em "Adicionar à Tela de Início"
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50">
+                  <div className="w-8 h-8 rounded-lg bg-dark-200 flex items-center justify-center text-sm font-bold text-dark-600">2</div>
+                  <p className="text-sm text-dark-700">Role e toque em <Plus className="w-4 h-4 inline text-primary-500" /> Adicionar à Tela de Início</p>
                 </div>
               </div>
             )}
-          </div>
+            <button
+              onClick={handleDismiss}
+              className="w-full py-3 rounded-xl border-2 border-dark-200 text-dark-600 font-semibold hover:bg-dark-50 transition-all text-sm"
+            >
+              Agora não
+            </button>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

@@ -672,6 +672,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
     type: '', size: '', toppings: '', fruits: '', extras: '',
   })
   const [itemIcons, setItemIcons] = useState<Record<string, string>>({})
+  const [itemPrices, setItemPrices] = useState({ toppingPrice: 1.5, fruitPrice: 0, extraPrice: 2.0 })
   const [bannerMsg, setBannerMsg] = useState('')
   const [workingDays, setWorkingDays] = useState([
     { day: 'Segunda-feira', open: true, start: '09:00', end: '22:00' },
@@ -692,6 +693,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
       if (d.banner) setBanner(d.banner)
       if (d.stepMessages) setStepMessages(prev => ({ ...prev, ...d.stepMessages }))
       if (d.itemIcons) setItemIcons(d.itemIcons)
+      if (d.itemPrices) setItemPrices(d.itemPrices)
     }).catch(() => {})
   }, [tenant.id])
 
@@ -785,7 +787,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
                 <input className="input-dark flex-1" value={banner} onChange={e => setBanner(e.target.value)} placeholder="Ex: 🎉 Cliente novo? Cupom BEMVINDO e ganhe 10% off!" />
                 <button onClick={async () => {
                   setBannerMsg('Salvando...')
-                  const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: tenant.id, banner, stepMessages, itemIcons }) })
+                  const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: tenant.id, banner, stepMessages, itemIcons, itemPrices }) })
                   if (r.ok) setBannerMsg('✅ Salvo!')
                   else { const d = await r.json(); setBannerMsg(`Erro: ${d.error}`) }
                   setTimeout(() => setBannerMsg(''), 3000)
@@ -838,6 +840,26 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             </a>
             <p className="text-xs text-dark-400 mt-2">Compartilhe este link com seus clientes para eles fazerem pedidos.</p>
           </div>
+        </div>
+
+        <div className="border-t border-dark-800 pt-6">
+          <h3 className="font-semibold text-white mb-4">Preços dos Itens</h3>
+          <p className="text-xs text-dark-500 mb-3">Defina o valor adicional de cada item no app.</p>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="text-xs text-dark-400 block mb-1">Coberturas (R$)</label>
+              <input type="number" step="0.5" min="0" value={itemPrices.toppingPrice} onChange={e => setItemPrices(prev => ({ ...prev, toppingPrice: parseFloat(e.target.value) || 0 }))} className="input-dark w-full" />
+            </div>
+            <div>
+              <label className="text-xs text-dark-400 block mb-1">Frutas (R$)</label>
+              <input type="number" step="0.5" min="0" value={itemPrices.fruitPrice} onChange={e => setItemPrices(prev => ({ ...prev, fruitPrice: parseFloat(e.target.value) || 0 }))} className="input-dark w-full" />
+            </div>
+            <div>
+              <label className="text-xs text-dark-400 block mb-1">Complementos (R$)</label>
+              <input type="number" step="0.5" min="0" value={itemPrices.extraPrice} onChange={e => setItemPrices(prev => ({ ...prev, extraPrice: parseFloat(e.target.value) || 0 }))} className="input-dark w-full" />
+            </div>
+          </div>
+          <p className="text-xs text-dark-500 mt-2">Coloque 0 (zero) para itens grátis.</p>
         </div>
 
         <div className="border-t border-dark-800 pt-6">
