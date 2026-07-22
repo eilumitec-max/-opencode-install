@@ -14,7 +14,14 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     const match = window.location.pathname.match(/^\/app\/([^/]+)/)
-    if (match) setAppName(match[1])
+    if (match) {
+      const slug = match[1]
+      fetch(`/app/${slug}/manifest`).then(r => r.json()).then(m => {
+        setAppName(m.name || slug)
+      }).catch(() => {
+        setAppName(slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
+      })
+    }
   }, [])
 
   useEffect(() => {
