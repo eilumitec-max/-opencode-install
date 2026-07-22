@@ -1,4 +1,4 @@
-const CACHE = 'goacai-v3'
+const CACHE = 'goacai-v4'
 
 self.addEventListener('install', e => {
   self.skipWaiting()
@@ -6,7 +6,11 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => self.clients.claim())
+    caches.keys().then(keys => {
+      return Promise.all(keys.map(k => caches.delete(k)))
+    }).then(() => {
+      return self.clients.claim()
+    })
   )
 })
 
@@ -20,16 +24,20 @@ self.addEventListener('message', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).catch(() => caches.match('/')))
+    e.respondWith(fetch(e.request).catch(() => new Response('Offline', { status: 503 })))
     return
   }
-  e.respondWith(
-    fetch(e.request).then(res => {
-      const clone = res.clone()
-      caches.open(CACHE).then(cache => cache.put(e.request, clone))
-      return res
-    }).catch(() => caches.match(e.request))
-  )
+  if (e.request.url.includes('/_next/static/') || e.request.url.match(/\.(js|css|png|jpg|svg|ico)$/)) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        const clone = res.clone()
+        caches.open(CACHE).then(cache => cache.put(e.request, clone))
+        return res
+      }).catch(() => caches.match(e.request))
+    )
+    return
+  }
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)))
 })
 
 self.addEventListener('push', e => {
