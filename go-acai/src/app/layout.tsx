@@ -78,7 +78,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta httpEquiv="content-language" content="pt-BR" />
-        <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(e){e.unregister()})}).then(function(){navigator.serviceWorker.register('/sw.js').then(function(reg){reg.addEventListener('updatefound',function(){reg.installing.addEventListener('statechange',function(){if(reg.installing.state==='installed'&&navigator.serviceWorker.controller){setTimeout(function(){location.reload()},500)}})});navigator.serviceWorker.addEventListener('controllerchange',function(){location.reload()})})})}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}` }} />
       </head>
       <body className="font-sans antialiased">
         {children}
