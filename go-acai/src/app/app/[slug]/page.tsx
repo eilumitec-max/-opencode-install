@@ -5,8 +5,8 @@ import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, Download, X } from 'lucide-react'
 import { getTenantBySlug, type Tenant, type TenantProduct } from '@/lib/tenants'
+import { fetchTenantBySlug, insertOrder, upsertCustomer, fetchCustomerByPhone } from '@/lib/supabase-queries'
 import { supabase } from '@/lib/supabase'
-import { insertOrder, upsertCustomer, fetchCustomerByPhone } from '@/lib/supabase-queries'
 
 type Step = 'name' | 'type' | 'size' | 'base' | 'toppings' | 'fruits' | 'extras' | 'cart' | 'checkout' | 'tracking'
 
@@ -22,12 +22,27 @@ const toppingsList = ['Leite Condensado', 'Nutella', 'Chocolate', 'Caramelo', 'M
 const fruitsList = ['Banana', 'Morango', 'Kiwi', 'Uva', 'Manga', 'Abacaxi', 'Maçã', 'Pera', 'Maracujá', 'Coco']
 const extrasList = ['Granola', 'Paçoca', 'Leite em Pó', 'Castanha', 'Confete', 'Ovomaltine', 'Amendoim', 'Coco Ralado', 'Chia', "MM's"]
 
-const itemIcons: Record<string, string> = {
+const defaultIcons: Record<string, string> = {
   'Leite Condensado': '🥛', 'Nutella': '🍫', 'Chocolate': '🍫', 'Caramelo': '🍯', 'Morango': '🍓',
   'Doce de Leite': '🍮', 'Leite Ninho': '🥛', 'Creme de Avelã': '🌰', 'Banana': '🍌', 'Kiwi': '🥝',
   'Uva': '🍇', 'Manga': '🥭', 'Abacaxi': '🍍', 'Maçã': '🍎', 'Pera': '🍐', 'Maracujá': '🟡',
   'Coco': '🥥', 'Granola': '🥣', 'Paçoca': '🥜', 'Leite em Pó': '🫘', 'Castanha': '🌰',
   'Confete': '🎊', 'Ovomaltine': '🧋', 'Amendoim': '🥜', 'Coco Ralado': '🥥', 'Chia': '🌱', "MM's": '🍬',
+}
+
+function AnimatedText({ text, className = '' }: { text: string; className?: string }) {
+  return (
+    <span className={className}>
+      {text.split('').map((ch, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0, y: -8, filter: 'blur(3px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ delay: i * 0.04, duration: 0.25, ease: 'easeOut' }}
+        >{ch}</motion.span>
+      ))}
+    </span>
+  )
 }
 
 export default function TenantAppPage() {
@@ -44,10 +59,34 @@ export default function TenantAppPage() {
   const [toast, setToast] = useState('')
   const [installPrompt, setInstallPrompt] = useState<any>(null)
   const [showInstall, setShowInstall] = useState(false)
+  const [dynamicToppings, setDynamicToppings] = useState<string[]>([])
+  const [dynamicFruits, setDynamicFruits] = useState<string[]>([])
+  const [dynamicExtras, setDynamicExtras] = useState<string[]>([])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
 
-  useEffect(() => { const t = getTenantBySlug(slug); if (t) setTenant(t) }, [slug])
+  useEffect(() => {
+    if (!slug) return
+    fetchTenantBySlug(slug).then(sbTenant => {
+      if (sbTenant) {
+        setTenant(sbTenant)
+        const activeCats = sbTenant.categories.filter(c => c.active)
+        const activeProds = sbTenant.products.filter(p => p.active)
+        const byCat = (name: string) => activeCats.some(c => c.name === name)
+        if (byCat('Coberturas')) setDynamicToppings(activeProds.filter(p => p.category === 'Coberturas').map(p => p.name))
+        if (byCat('Frutas')) setDynamicFruits(activeProds.filter(p => p.category === 'Frutas').map(p => p.name))
+        if (byCat('Complementos')) setDynamicExtras(activeProds.filter(p => p.category === 'Complementos').map(p => p.name))
+      } else {
+        const t = getTenantBySlug(slug)
+        if (t) setTenant(t)
+      }
+    }).catch(() => {
+      const t = getTenantBySlug(slug)
+      if (t) setTenant(t)
+    })
+  }, [slug])
+
+  const itemIcons = { ...defaultIcons, ...itemIconsOverrides }
 
   useEffect(() => {
     if (!tenant) return
@@ -83,7 +122,7 @@ export default function TenantAppPage() {
   const orderTotal = getPrice()
   const deliveryFee = tenant?.deliveryFee || 0
   const sm = (key: string, fallback: string) => stepMessages[key] || fallback
-  const getIcon = (name: string) => itemIconsOverrides[name] || itemIcons[name] || '✨'
+  const getIcon = (name: string) => itemIcons[name] || '✨'
 
   if (!tenant) return (
     <div className="min-h-screen bg-dark-950 flex items-center justify-center">
@@ -161,8 +200,8 @@ export default function TenantAppPage() {
           <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 overflow-y-auto p-4 sm:p-6">
             {step === 'type' && (
               <div className="space-y-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200">
-                  <p className="text-sm font-semibold text-primary-800">{sm('type', '🍇 Escolha 1 base para começar seu pedido!')}</p>
+                <div className="p-4 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200">
+                  <AnimatedText text={sm('type', '🍇 Escolha 1 base para começar seu pedido!')} className="font-display text-base font-bold text-primary-800" />
                 </div>
                 <div className="space-y-2">
                   {typeOptions.map(opt => (
@@ -179,8 +218,8 @@ export default function TenantAppPage() {
             )}
             {step === 'size' && (
               <div className="space-y-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200">
-                  <p className="text-sm font-semibold text-primary-800">{sm('size', '🥤 Escolha 1 tamanho — você tem direito a 4 acompanhamentos grátis!')}</p>
+                <div className="p-4 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200">
+                  <AnimatedText text={sm('size', '🥤 Escolha 1 tamanho — você tem direito a 4 acompanhamentos grátis!')} className="font-display text-base font-bold text-primary-800" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {sizeOptions.map((opt, i) => (
@@ -200,11 +239,11 @@ export default function TenantAppPage() {
             )}
             {step === 'toppings' && (
               <div className="space-y-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
-                  <p className="text-sm font-semibold text-amber-800">{sm('toppings', '🍫 Você tem direito a 2 coberturas grátis! (R$ 1,50 cada adicional)')}</p>
+                <div className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                  <AnimatedText text={sm('toppings', '🍫 Você tem direito a 2 coberturas grátis! (R$ 1,50 cada adicional)')} className="font-display text-base font-bold text-amber-800" />
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {toppingsList.map(item => (
+                  {(dynamicToppings.length ? dynamicToppings : toppingsList).map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                       onClick={() => setOrder({ ...order, toppings: toggleItem(order.toppings, item) })}
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-full border-2 transition-all ${order.toppings.includes(item) ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-dark-200 hover:border-primary-200 text-dark-700'}`}>
@@ -218,11 +257,11 @@ export default function TenantAppPage() {
             )}
             {step === 'fruits' && (
               <div className="space-y-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
-                  <p className="text-sm font-semibold text-green-800">{sm('fruits', '🍓 Você tem direito a 3 frutas grátis! Escolha as suas favoritas')}</p>
+                <div className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                  <AnimatedText text={sm('fruits', '🍓 Você tem direito a 3 frutas grátis! Escolha as suas favoritas')} className="font-display text-base font-bold text-green-800" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {fruitsList.map(item => (
+                  {(dynamicFruits.length ? dynamicFruits : fruitsList).map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       onClick={() => setOrder({ ...order, fruits: toggleItem(order.fruits, item) })}
                       className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${order.fruits.includes(item) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
@@ -236,11 +275,11 @@ export default function TenantAppPage() {
             )}
             {step === 'extras' && (
               <div className="space-y-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200">
-                  <p className="text-sm font-semibold text-purple-800">{sm('extras', '🥜 Adicione quantos complementos quiser! (R$ 2,00 cada)')}</p>
+                <div className="p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200">
+                  <AnimatedText text={sm('extras', '🥜 Adicione quantos complementos quiser! (R$ 2,00 cada)')} className="font-display text-base font-bold text-purple-800" />
                 </div>
                 <div className="space-y-2">
-                  {extrasList.map(item => (
+                  {(dynamicExtras.length ? dynamicExtras : extrasList).map(item => (
                     <motion.button key={item} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
                       onClick={() => setOrder({ ...order, extras: toggleItem(order.extras, item) })}
                       className={`flex items-center gap-3 w-full p-3 rounded-xl border-2 transition-all ${order.extras.includes(item) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>

@@ -299,8 +299,9 @@ function ProductsTab({ tenant }: { tenant: Tenant }) {
 
   const saveEdit = (id: string) => {
     if (!editForm.name || !editForm.price) return
+    const existing = products.find(p => p.id === id)
     setProducts(prev => prev.map(p => p.id === id ? { ...p, name: editForm.name, category: editForm.category, price: parseFloat(editForm.price), oldPrice: editForm.oldPrice ? parseFloat(editForm.oldPrice) : null, stock: parseInt(editForm.stock) || 0 } : p))
-    upsertProduct({ id, tenant_id: tenant.id, name: editForm.name, category: editForm.category, price: parseFloat(editForm.price), oldPrice: editForm.oldPrice ? parseFloat(editForm.oldPrice) : null, stock: parseInt(editForm.stock) || 0, image: '', active: true, featured: false, sales: 0 })
+    upsertProduct({ id, tenant_id: tenant.id, name: editForm.name, category: editForm.category, price: parseFloat(editForm.price), oldPrice: editForm.oldPrice ? parseFloat(editForm.oldPrice) : null, stock: parseInt(editForm.stock) || 0, image: '', active: existing?.active ?? true, featured: existing?.featured ?? false, sales: existing?.sales ?? 0 })
     setEditingProduct(null)
   }
 
