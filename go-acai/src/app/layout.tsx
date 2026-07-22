@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import InstallPrompt from '@/components/InstallPrompt'
-import InstallCapture from '@/components/InstallCapture'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -78,11 +77,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta httpEquiv="content-language" content="pt-BR" />
-        <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `window.__deferredPrompt=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__deferredPrompt=e});if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}` }} />
       </head>
       <body className="font-sans antialiased">
         {children}
-        <InstallCapture />
         <InstallPrompt />
       </body>
     </html>
