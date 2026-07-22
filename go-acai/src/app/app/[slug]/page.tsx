@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, X } from 'lucide-react'
@@ -865,14 +865,22 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
 
   const statusToLevel: Record<string, number> = { pending: 0, preparing: 1, shipped: 2, delivered: 3 }
   const statusLabels: Record<string, string> = { pending: 'Aguardando confirmação', preparing: 'Preparando seu pedido...', shipped: 'Saiu para entrega!', delivered: 'Pedido entregue!' }
-  const prevStatusRef = useRef('')
 
   const updateFromStatus = (status: string) => {
     if (status && statusToLevel[status] !== undefined) {
-      if (prevStatusRef.current !== status && (status === 'preparing' || status === 'shipped')) {
-        playStatusSound(status)
+      if (status === 'preparing' || status === 'shipped') {
+        const raw = localStorage.getItem('goacai_tracking')
+        const id = raw ? JSON.parse(raw).orderId : ''
+        if (id) {
+          const playedKey = 'goacai_sound_' + id
+          const played = JSON.parse(localStorage.getItem(playedKey) || '{}')
+          if (!played[status]) {
+            playStatusSound(status)
+            played[status] = true
+            localStorage.setItem(playedKey, JSON.stringify(played))
+          }
+        }
       }
-      prevStatusRef.current = status
       setTrackLevel(statusToLevel[status])
       setTrackLabel(statusLabels[status] || '')
     }
