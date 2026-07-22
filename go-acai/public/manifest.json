@@ -2,7 +2,7 @@
   "name": "GO AÇAÍ",
   "short_name": "GO AÇAÍ",
   "description": "Seu aplicativo de delivery de açaí, sorvetes e gelaterias",
-  "start_url": "/",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#1a1a2e",
