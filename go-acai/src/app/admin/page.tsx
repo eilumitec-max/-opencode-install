@@ -1077,7 +1077,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
   const [whatsapp, setWhatsapp] = useState(tenant.whatsapp)
   const [minOrder, setMinOrder] = useState(String(tenant.minOrder))
   const [storeAddress, setStoreAddress] = useState(tenant.address)
-  const [storeCep, setStoreCep] = useState('')
+  const [storeCep, setStoreCep] = useState(tenant.cep || '')
   const [pricePerKm, setPricePerKm] = useState(String(tenant.pricePerKm || ''))
   const [storeLat, setStoreLat] = useState(String(tenant.latitude || ''))
   const [storeLng, setStoreLng] = useState(String(tenant.longitude || ''))
@@ -1180,8 +1180,8 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             <div><label className="text-xs text-dark-400 block mb-1">Taxa de Entrega (R$)</label><input className="input-dark" value={deliveryFee} onChange={e => setDeliveryFee(e.target.value)} placeholder="0,00" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">WhatsApp</label><input className="input-dark" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Mínimo p/ Pedido (R$)</label><input className="input-dark" value={minOrder} onChange={e => setMinOrder(e.target.value)} /></div>
-            <div className="sm:col-span-2"><label className="text-xs text-dark-400 block mb-1">Endereço</label><div className="flex gap-2"><input className="input-dark flex-1" value={storeAddress} onChange={e => setStoreAddress(e.target.value)} /><button onClick={async () => { if (!storeCep) { alert('Digite o CEP primeiro.'); return }; setSearchingCep(true); try { const r = await fetch(`https://viacep.com.br/ws/${storeCep.replace(/\D/g,'')}/json/`); const d = await r.json(); if (d.erro) { alert('CEP não encontrado'); return }; setStoreAddress(`${d.logradouro}, ${d.bairro}`) } catch (e: any) { alert('Erro: ' + e.message) }; setSearchingCep(false) }} disabled={searchingCep} className="px-3 py-2 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors text-sm shrink-0">{searchingCep ? '...' : 'Buscar CEP'}</button></div></div>
-            <div><label className="text-xs text-dark-400 block mb-1">CEP</label><input className="input-dark" value={storeCep} onChange={e => setStoreCep(e.target.value)} placeholder="00000-000" /></div>
+            <div className="sm:col-span-2"><label className="text-xs text-dark-400 block mb-1">Endereço</label><input className="input-dark w-full" value={storeAddress} onChange={e => setStoreAddress(e.target.value)} /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">CEP</label><div className="flex gap-2"><input className="input-dark flex-1" value={storeCep} onChange={e => setStoreCep(e.target.value)} placeholder="00000-000" /><button onClick={async () => { if (!storeCep) { alert('Digite o CEP primeiro.'); return }; setSearchingCep(true); try { const r = await fetch(`https://viacep.com.br/ws/${storeCep.replace(/\D/g,'')}/json/`); const d = await r.json(); if (d.erro) { alert('CEP não encontrado'); return }; setStoreAddress(`${d.logradouro}, ${d.bairro}`) } catch (e: any) { alert('Erro: ' + e.message) }; setSearchingCep(false) }} disabled={searchingCep} className="px-3 py-2 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors text-sm shrink-0">{searchingCep ? '...' : 'Buscar CEP'}</button></div></div>
             <div><label className="text-xs text-dark-400 block mb-1">Preço por km (R$)</label><input type="number" step="0.1" min="0" value={pricePerKm} onChange={e => setPricePerKm(e.target.value)} className="input-dark" placeholder="0,00" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Latitude</label><input className="input-dark" value={storeLat} onChange={e => setStoreLat(e.target.value)} placeholder="Preenchido via geocode" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Longitude</label><input className="input-dark" value={storeLng} onChange={e => setStoreLng(e.target.value)} placeholder="Preenchido via geocode" /></div>
@@ -1304,7 +1304,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             const openDays = workingDays.filter(d => d.open)
             const hoursStr = openDays.length > 0 ? `${openDays[0].start} - ${openDays[openDays.length - 1].end}` : 'Fechado'
             const wh = workingDays.map(d => `${d.open ? '' : '(Fechado) '}${d.day}: ${d.open ? `${d.start} às ${d.end}` : '-'}`).join('; ')
-            await updateTenant(tenant.id, { name: storeName, delivery_fee: parseFloat(deliveryFee) || 0, whatsapp, min_order: parseFloat(minOrder) || 0, address: storeAddress, working_hours: wh, price_per_km: parseFloat(pricePerKm) || 0, latitude: parseFloat(storeLat) || null, longitude: parseFloat(storeLng) || null })
+            await updateTenant(tenant.id, { name: storeName, delivery_fee: parseFloat(deliveryFee) || 0, whatsapp, min_order: parseFloat(minOrder) || 0, address: storeAddress, working_hours: wh, price_per_km: parseFloat(pricePerKm) || 0, latitude: parseFloat(storeLat) || null, longitude: parseFloat(storeLng) || null, cep: storeCep })
             if (r.ok) setBannerMsg('✅ Todas as configurações salvas!')
             else { const d = await r.json(); setBannerMsg(`Erro: ${d.error}`) }
             setTimeout(() => setBannerMsg(''), 3000)

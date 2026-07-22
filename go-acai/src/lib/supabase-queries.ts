@@ -10,6 +10,7 @@ function mapTenant(row: any): Tenant {
     deliveryFee: row.delivery_fee, minOrder: row.min_order,
     workingHours: row.working_hours, installments: row.installments,
     pricePerKm: row.price_per_km || 0, latitude: row.latitude, longitude: row.longitude,
+    cep: row.cep || '',
     products: [], categories: [], orders: [],
   }
 }
