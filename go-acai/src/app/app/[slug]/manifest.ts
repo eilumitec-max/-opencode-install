@@ -20,6 +20,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     start_url: `/app/${params.slug}`,
     scope: '/app',
     display: 'standalone',
+    id: `goacai-${params.slug}`,
     orientation: 'portrait-primary',
     theme_color: themeColor,
     background_color: '#1a1a2e',
