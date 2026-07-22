@@ -8,6 +8,7 @@ function translateError(msg: string) {
     'Password should be at least 6 characters': 'A senha deve ter no mínimo 6 caracteres.',
     'Unable to validate email address: invalid format': 'Email inválido. Digite um email válido.',
   }
+  if (msg.toLowerCase().includes('rate limit')) return 'Limite de tentativas excedido. Tente novamente em alguns minutos.'
   return map[msg] || msg
 }
 
