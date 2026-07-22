@@ -13,6 +13,7 @@ export default function InstallPrompt() {
   const [isIos, setIsIos] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
   const [appName, setAppName] = useState('')
+  const [toast, setToast] = useState('')
 
   useEffect(() => {
     setShow(false)
@@ -43,10 +44,18 @@ export default function InstallPrompt() {
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
     setIsIos(ios)
 
+    if ((window as any).__deferredPrompt) {
+      deferredRef.current = (window as any).__deferredPrompt
+      setTimeout(() => setShow(true), 2000)
+    }
+
     const handler = (e: Event) => {
       e.preventDefault()
       deferredRef.current = e
-      setTimeout(() => setShow(true), 2000)
+      ;(window as any).__deferredPrompt = e
+      if (!show) {
+        setTimeout(() => setShow(true), 2000)
+      }
     }
 
     window.addEventListener('beforeinstallprompt', handler)
@@ -62,7 +71,7 @@ export default function InstallPrompt() {
   }, [pathname])
 
   const handleInstall = async () => {
-    const prompt = deferredRef.current
+    const prompt = deferredRef.current || (window as any).__deferredPrompt
     if (prompt) {
       prompt.prompt()
       const result = await prompt.userChoice
@@ -71,6 +80,10 @@ export default function InstallPrompt() {
         setIsInstalled(true)
       }
       deferredRef.current = null
+      ;(window as any).__deferredPrompt = null
+    } else {
+      setToast('Use o menu ⋮ do Chrome > "Instalar aplicativo"')
+      setTimeout(() => setToast(''), 3000)
     }
   }
 
@@ -135,6 +148,18 @@ export default function InstallPrompt() {
               Agora não
             </button>
           </motion.div>
+        </motion.div>
+      )}
+      {toast && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          className="fixed bottom-6 left-4 right-4 z-50 max-w-md mx-auto"
+        >
+          <div className="bg-dark-900 text-white rounded-2xl px-5 py-3.5 shadow-2xl text-sm font-semibold text-center">
+            {toast}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
