@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   creator: 'GO AÇAÍ',
   publisher: 'GO AÇAÍ',
   robots: 'index, follow',
-  manifest: '/manifest.json',
+  manifest: '/manifest.json?v=3',
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
