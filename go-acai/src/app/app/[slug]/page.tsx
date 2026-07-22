@@ -673,7 +673,10 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
 
     setConfirmed(true)
     localStorage.setItem('goacai_tracking', JSON.stringify({
-      orderId, status: 'pending', customer: customerName, phone: customerPhone, updatedAt: Date.now()
+      orderId, status: 'pending', customer: customerName, phone: customerPhone,
+      updatedAt: Date.now(), items, total: actualTotal, deliveryFee: actualDeliveryFee,
+      payment: paymentMethod, method: deliveryMethod, size: order.size, type: order.type,
+      toppings: order.toppings, fruits: order.fruits, extras: order.extras,
     }))
     setTimeout(() => goTo('tracking'), 1500)
   }
@@ -896,10 +899,13 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
     }
   }
 
+  const [trackData, setTrackData] = useState<any>(null)
+
   useEffect(() => {
     const raw = localStorage.getItem('goacai_tracking')
     if (raw) {
       const data = JSON.parse(raw)
+      setTrackData(data)
       if (data.orderId) setOrderId(data.orderId)
       if (data.status) updateFromStatus(data.status)
       if (data.phone) {
@@ -1019,6 +1025,21 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
             <p className="text-sm text-dark-900">{customerData.address}, {customerData.number}{customerData.complement ? ` - ${customerData.complement}` : ''}</p>
             <p className="text-xs text-dark-500">{customerData.neighborhood}, {customerData.city} - {customerData.state}</p>
             <p className="text-xs text-dark-400 mt-1">CEP: {customerData.cep}</p>
+          </div>
+        )}
+
+        {trackData && (
+          <div className="rounded-2xl p-4 border border-dark-200 space-y-2">
+            <p className="text-xs font-semibold text-dark-500 uppercase tracking-wider">Resumo do Pedido</p>
+            <p className="text-sm text-dark-900">{trackData.size} - {trackData.type}</p>
+            {trackData.toppings?.length > 0 && <p className="text-xs text-dark-600">Coberturas: {trackData.toppings.join(', ')}</p>}
+            {trackData.fruits?.length > 0 && <p className="text-xs text-dark-600">Frutas: {trackData.fruits.join(', ')}</p>}
+            {trackData.extras?.length > 0 && <p className="text-xs text-dark-600">Complementos: {trackData.extras.join(', ')}</p>}
+            <div className="border-t border-dark-200 pt-2 mt-2 space-y-1 text-xs">
+              <div className="flex justify-between"><span className="text-dark-500">Entrega</span><span className="text-dark-900">{trackData.deliveryFee === 0 ? 'Grátis' : `R$ ${trackData.deliveryFee.toFixed(2).replace('.', ',')}`}</span></div>
+              <div className="flex justify-between font-bold text-sm"><span className="text-dark-700">Total</span><span style={{ color: tenant.primaryColor }}>R$ {trackData.total.toFixed(2).replace('.', ',')}</span></div>
+            </div>
+            {trackData.payment && <p className="text-xs text-dark-400 mt-1">Pagamento: {trackData.payment} — {trackData.method}</p>}
           </div>
         )}
 
