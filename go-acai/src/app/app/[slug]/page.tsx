@@ -14,7 +14,7 @@ interface OrderState {
   type: string; size: string; base: string; toppings: string[]; fruits: string[]; extras: string[]
 }
 
-const orderingSteps: Step[] = ['type', 'size', 'toppings', 'fruits', 'extras', 'cart']
+const orderingSteps: Step[] = ['size', 'type', 'toppings', 'fruits', 'extras', 'cart']
 const stepToCategory: Record<string, string> = { toppings: 'Coberturas', fruits: 'Frutas', extras: 'Complementos' }
 
 const sizeOptions = ['300 ml', '500 ml', '700 ml', '1 Litro']
@@ -297,7 +297,7 @@ export default function TenantAppPage() {
                 <div className="space-y-2">
                   {displayTypes.options.map(opt => (
                     <motion.button key={opt} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => { setOrder({ ...order, type: opt, base: displayTypes.bases[opt] || 'Açaí' }); goTo('size') }}
+                      onClick={() => { setOrder({ ...order, type: opt, base: displayTypes.bases[opt] || 'Açaí' }); goTo('toppings') }}
                       className={`flex items-center gap-4 w-full p-4 rounded-xl border-2 transition-all ${order.type === opt ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
                       <span className="text-2xl">{displayTypes.emojis[opt] || '🫐'}</span>
                       <span className="font-medium text-dark-900 flex-1 text-left">{opt}</span>
@@ -315,7 +315,7 @@ export default function TenantAppPage() {
                 <div className="grid grid-cols-2 gap-3">
                   {displaySizes.options.map((opt, i) => (
                     <motion.button key={opt} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => { setOrder({ ...order, size: opt }); goTo('toppings') }}
+                      onClick={() => { setOrder({ ...order, size: opt }); goTo('type') }}
                       className={`p-5 rounded-2xl border-2 transition-all text-center ${order.size === opt ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
                       <div className="flex items-center justify-center mb-2">
                         <div style={{ width: `${40 + Math.min(i, 3) * 15}px`, height: `${40 + Math.min(i, 3) * 15}px` }} className="rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
@@ -423,7 +423,7 @@ export default function TenantAppPage() {
           )}
         </AnimatePresence>
 
-        {step !== 'type' && step !== 'cart' && (
+        {step !== 'size' && step !== 'cart' && (
           <div className="sticky bottom-0 p-4 bg-white border-t border-dark-100">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-dark-500">Total parcial</span>
@@ -455,7 +455,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
     if (data) {
       setCustomerName(data.name)
       setLooking(false)
-      goTo('type')
+      goTo('size')
       return
     }
     setLooking(false)
@@ -465,7 +465,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
   const handleRegister = async () => {
     if (!customerName.trim()) return
     await upsertCustomer({ phone: customerPhone, name: customerName.trim(), tenant_id: tenant.id })
-    goTo('type')
+    goTo('size')
   }
 
   if (phase === 'register') {
