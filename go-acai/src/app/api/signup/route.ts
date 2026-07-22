@@ -43,6 +43,48 @@ export async function POST(request: Request) {
     })
     if (linkError) return NextResponse.json({ error: linkError.message }, { status: 500 })
 
+    const catId = (n: string) => `${tenantId}-cat-${n}`
+    const defaultCategories = [
+      { id: catId('Coberturas'), tenant_id: tenantId, name: 'Coberturas', icon: '🍫', active: true, order: 1 },
+      { id: catId('Frutas'), tenant_id: tenantId, name: 'Frutas', icon: '🍓', active: true, order: 2 },
+      { id: catId('Complementos'), tenant_id: tenantId, name: 'Complementos', icon: '🥜', active: true, order: 3 },
+    ]
+    await supabase.from('categories').insert(defaultCategories)
+
+    let _pid = 0
+    const prodId = () => `p${Date.now()}${++_pid}${Math.random().toString(36).slice(2, 6)}`
+    const defaultProducts = [
+      { id: prodId(), tenant_id: tenantId, name: 'Leite Condensado', category: 'Coberturas', price: 1.5, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Nutella', category: 'Coberturas', price: 1.5, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Chocolate', category: 'Coberturas', price: 1.5, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Caramelo', category: 'Coberturas', price: 1.5, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Morango', category: 'Coberturas', price: 1.5, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Doce de Leite', category: 'Coberturas', price: 1.5, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Leite Ninho', category: 'Coberturas', price: 1.5, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Creme de Avelã', category: 'Coberturas', price: 1.5, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Banana', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Morango', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Kiwi', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Uva', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Manga', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Abacaxi', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Maçã', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Pera', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Maracujá', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Coco', category: 'Frutas', price: 0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Granola', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Paçoca', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Leite em Pó', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Castanha', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Confete', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Ovomaltine', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Amendoim', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Coco Ralado', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: 'Chia', category: 'Complementos', price: 2.0, active: true, sales: 0 },
+      { id: prodId(), tenant_id: tenantId, name: "M&M's", category: 'Complementos', price: 2.0, active: true, sales: 0 },
+    ]
+    await supabase.from('products').insert(defaultProducts)
+
     try { await sendWelcomeEmail(email, storeName, slug) } catch (e: any) { console.error('Email error:', e?.message) }
 
     return NextResponse.json({ tenantId, slug })
