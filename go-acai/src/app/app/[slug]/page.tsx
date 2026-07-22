@@ -689,6 +689,13 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
           <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo}</div>
           <div><p className="font-medium text-dark-900 text-sm">{customerName}</p><p className="text-xs text-dark-500">{order.size} - {order.type}</p></div>
         </div>
+        <div className="p-4 rounded-xl bg-dark-50 border border-dark-200 space-y-1.5">
+          <p className="font-semibold text-dark-700 text-sm">Seu Pedido</p>
+          <p className="text-sm text-dark-600">{order.size} - {order.type}</p>
+          {order.toppings.length > 0 && <p className="text-sm text-dark-600">Coberturas: {order.toppings.join(', ')}</p>}
+          {order.fruits.length > 0 && <p className="text-sm text-dark-600">Frutas: {order.fruits.join(', ')}</p>}
+          {order.extras.length > 0 && <p className="text-sm text-dark-600">Complementos: {order.extras.join(', ')}</p>}
+        </div>
         <div>
           <p className="font-semibold text-dark-700 mb-2">Entrega ou Retirada?</p>
           <div className="grid grid-cols-2 gap-2">
@@ -712,6 +719,9 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
                     <option key={z.id} value={z.id}>{z.name} — R$ {parseFloat(z.fee).toFixed(2).replace('.', ',')}</option>
                   ))}
                 </select>
+                {selectedZoneId && (
+                  <p className="text-sm mt-1" style={{ color: tenant.primaryColor }}>Taxa de entrega: R$ {actualDeliveryFee.toFixed(2).replace('.', ',')}</p>
+                )}
               </div>
             )}
             {hasSavedAddress && !editingAddress ? (
