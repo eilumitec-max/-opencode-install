@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, Share2, Plus } from 'lucide-react'
 
 export default function InstallPrompt() {
   const pathname = usePathname()
+  const deferredRef = useRef<any>(null)
   const [show, setShow] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
   const [isIos, setIsIos] = useState(false)
@@ -44,10 +45,8 @@ export default function InstallPrompt() {
 
     const handler = (e: Event) => {
       e.preventDefault()
-      ;(window as any).__deferredPrompt = e
-      if (!show) {
-        setTimeout(() => setShow(true), 2000)
-      }
+      deferredRef.current = e
+      setTimeout(() => setShow(true), 2000)
     }
 
     window.addEventListener('beforeinstallprompt', handler)
@@ -63,7 +62,7 @@ export default function InstallPrompt() {
   }, [pathname])
 
   const handleInstall = async () => {
-    const prompt = (window as any).__deferredPrompt
+    const prompt = deferredRef.current
     if (prompt) {
       prompt.prompt()
       const result = await prompt.userChoice
@@ -71,7 +70,7 @@ export default function InstallPrompt() {
         setShow(false)
         setIsInstalled(true)
       }
-      ;(window as any).__deferredPrompt = null
+      deferredRef.current = null
     }
   }
 
