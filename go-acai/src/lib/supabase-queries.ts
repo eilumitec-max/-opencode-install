@@ -17,10 +17,11 @@ export async function fetchTenantById(id: string): Promise<Tenant | null> {
   const { data, error } = await supabase.from('tenants').select('*').eq('id', id).single()
   if (error || !data) return null
   const tenant = mapTenant(data)
-  const [products, categories, orders] = await Promise.all([
+  const [products, categories, orders, deliveryZones] = await Promise.all([
     supabase.from('products').select('*').eq('tenant_id', id),
     supabase.from('categories').select('*').eq('tenant_id', id),
     supabase.from('orders').select('*').eq('tenant_id', id),
+    supabase.from('delivery_zones').select('*').eq('tenant_id', id),
   ])
   if (products.data) tenant.products = products.data.map((r: any) => ({
     id: r.id, name: r.name, category: r.category, price: r.price,
@@ -33,6 +34,9 @@ export async function fetchTenantById(id: string): Promise<Tenant | null> {
   if (orders.data) tenant.orders = orders.data.map((r: any) => ({
     id: r.id, customer: r.customer, items: r.items, total: r.total,
     status: r.status, payment: r.payment, method: r.method, date: r.date, address: r.address,
+  }))
+  if (deliveryZones.data) tenant.deliveryZones = deliveryZones.data.map((r: any) => ({
+    id: r.id, name: r.name, fee: r.fee, active: r.active,
   }))
   return tenant
 }
@@ -147,5 +151,20 @@ export async function deletePaymentMethodById(id: string, tenantId: string) {
 
 export async function updateTenant(tenantId: string, fields: Record<string, any>) {
   const { error } = await supabase.from('tenants').update(fields).eq('id', tenantId)
+  return error
+}
+
+export async function fetchDeliveryZones(tenantId: string): Promise<any[]> {
+  const { data } = await supabase.from('delivery_zones').select('*').eq('tenant_id', tenantId)
+  return data || []
+}
+
+export async function upsertDeliveryZone(zone: any) {
+  const { error } = await supabase.from('delivery_zones').upsert(zone)
+  return error
+}
+
+export async function deleteDeliveryZoneById(id: string, tenantId: string) {
+  const { error } = await supabase.from('delivery_zones').delete().match({ id, tenant_id: tenantId })
   return error
 }

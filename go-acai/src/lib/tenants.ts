@@ -1,3 +1,10 @@
+export interface DeliveryZone {
+  id: string
+  name: string
+  fee: number
+  active: boolean
+}
+
 export interface Tenant {
   id: string
   slug: string
@@ -14,6 +21,7 @@ export interface Tenant {
   products: TenantProduct[]
   categories: TenantCategory[]
   orders: TenantOrder[]
+  deliveryZones?: DeliveryZone[]
 }
 
 export interface TenantProduct {

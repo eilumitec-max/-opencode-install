@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, Check, ArrowRight, ShoppingBag, MapPin, Package, Clock, Plus, Minus, X } from 'lucide-react'
 import { getTenantBySlug, type Tenant, type TenantProduct } from '@/lib/tenants'
-import { fetchTenantBySlug, insertOrder, upsertCustomer, fetchCustomerByPhone, fetchTenantSizes, fetchTenantTypes, fetchTenantPaymentMethods } from '@/lib/supabase-queries'
+import { fetchTenantBySlug, insertOrder, upsertCustomer, fetchCustomerByPhone, fetchTenantSizes, fetchTenantTypes, fetchTenantPaymentMethods, fetchDeliveryZones } from '@/lib/supabase-queries'
 import { supabase } from '@/lib/supabase'
 
 type Step = 'name' | 'type' | 'size' | 'base' | 'toppings' | 'fruits' | 'extras' | 'cart' | 'checkout' | 'tracking'
@@ -68,6 +68,7 @@ export default function TenantAppPage() {
   const [dbSizes, setDbSizes] = useState<any[]>([])
   const [dbTypes, setDbTypes] = useState<any[]>([])
   const [dbPayments, setDbPayments] = useState<any[]>([])
+  const [deliveryZones, setDeliveryZones] = useState<any[]>([])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
   const showError = (msg: string) => { setErrorModal(msg) }
@@ -148,6 +149,7 @@ export default function TenantAppPage() {
     fetchTenantSizes(tenant.id).then(setDbSizes).catch(() => {})
     fetchTenantTypes(tenant.id).then(setDbTypes).catch(() => {})
     fetchTenantPaymentMethods(tenant.id).then(setDbPayments).catch(() => {})
+    fetchDeliveryZones(tenant.id).then(setDeliveryZones).catch(() => {})
   }, [tenant])
 
   useEffect(() => {
@@ -227,7 +229,8 @@ export default function TenantAppPage() {
   if (step === 'tracking') return <TrackingScreen tenant={tenant} goBack={goBack} />
   if (step === 'checkout') return (
     <CheckoutScreen tenant={tenant} total={orderTotal + deliveryFee} goBack={goBack} goTo={goTo}
-      customerName={customerName} customerPhone={customerPhone} order={order} paymentOptions={displayPaymentOptions} />
+      customerName={customerName} customerPhone={customerPhone} order={order} paymentOptions={displayPaymentOptions}
+      deliveryZones={deliveryZones} baseDeliveryFee={deliveryFee} />
   )
 
   const clearOrderForSkipped = (s: Step) => {
@@ -585,10 +588,11 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
   )
 }
 
-function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPhone, order, paymentOptions }: {
+function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPhone, order, paymentOptions, deliveryZones, baseDeliveryFee }: {
   tenant: Tenant; total: number; goBack: () => void; goTo: (s: Step) => void
   customerName: string; customerPhone: string; order: OrderState
   paymentOptions: { icon: string; label: string }[]
+  deliveryZones: any[]; baseDeliveryFee: number
 }) {
   const [deliveryMethod, setDeliveryMethod] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('')
@@ -606,6 +610,13 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
   const [loadingCep, setLoadingCep] = useState(false)
   const [hasSavedAddress, setHasSavedAddress] = useState(false)
   const [editingAddress, setEditingAddress] = useState(false)
+  const [selectedZoneId, setSelectedZoneId] = useState('')
+
+  const activeZones = deliveryZones.filter((z: any) => z.active)
+  const useZones = activeZones.length > 0
+  const zoneFee = useZones && selectedZoneId ? (activeZones.find((z: any) => z.id === selectedZoneId)?.fee || 0) : 0
+  const actualDeliveryFee = useZones ? zoneFee : baseDeliveryFee
+  const actualTotal = total - baseDeliveryFee + actualDeliveryFee
 
   useEffect(() => {
     if (!customerPhone) return
@@ -655,7 +666,7 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
 
     const err2 = await insertOrder({
       id: orderId, tenant_id: tenant.id, customer: customerName, phone: customerPhone, items,
-      total, status: 'pending', payment: paymentMethod,
+      total: actualTotal, status: 'pending', payment: paymentMethod,
       method: deliveryMethod, date: new Date().toLocaleString('pt-BR'), address: deliveryAddress,
     })
     if (err2) { setSaveError(`Erro ao salvar pedido: ${err2.message}`); setSaving(false); return }
@@ -691,6 +702,18 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
         {deliveryMethod === 'Entrega' && (
           <div className="space-y-3">
             <p className="font-semibold text-dark-700">Endereço de Entrega</p>
+            {useZones && (
+              <div>
+                <label className="text-xs text-dark-400 block mb-1">Bairro</label>
+                <select value={selectedZoneId} onChange={e => { setSelectedZoneId(e.target.value); const z = activeZones.find((x: any) => x.id === e.target.value); if (z) setNeighborhood(z.name) }}
+                  className="w-full bg-dark-50 border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-900 outline-none focus:border-primary-500 transition-all">
+                  <option value="">Selecione o bairro</option>
+                  {activeZones.map((z: any) => (
+                    <option key={z.id} value={z.id}>{z.name} — R$ {parseFloat(z.fee).toFixed(2).replace('.', ',')}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             {hasSavedAddress && !editingAddress ? (
               <div className="p-4 rounded-xl bg-dark-50 border border-dark-200">
                 <div className="flex items-start justify-between">
@@ -731,7 +754,11 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-dark-400 block mb-1">Bairro</label>
-                    <input value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className="w-full bg-dark-50 border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-900 outline-none focus:border-primary-500 transition-all" placeholder="Bairro" />
+                    {useZones ? (
+                      <p className="w-full bg-dark-50 border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-500">{selectedZoneId ? activeZones.find((z: any) => z.id === selectedZoneId)?.name || neighborhood : neighborhood}</p>
+                    ) : (
+                      <input value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className="w-full bg-dark-50 border border-dark-200 rounded-xl px-4 py-3 text-sm text-dark-900 outline-none focus:border-primary-500 transition-all" placeholder="Bairro" />
+                    )}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
@@ -762,9 +789,9 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
           </div>
         </div>
         <div className="border-t border-dark-200 pt-4 space-y-1 text-sm">
-          <div className="flex justify-between"><span>Subtotal</span><span>R$ {(total - tenant.deliveryFee).toFixed(2).replace('.', ',')}</span></div>
-          <div className="flex justify-between"><span>Entrega</span><span>{tenant.deliveryFee === 0 ? 'Grátis' : `R$ ${tenant.deliveryFee.toFixed(2).replace('.', ',')}`}</span></div>
-          <div className="flex justify-between text-lg font-bold border-t border-dark-200 pt-2"><span>Total</span><span style={{ color: tenant.primaryColor }}>R$ {total.toFixed(2).replace('.', ',')}</span></div>
+          <div className="flex justify-between"><span>Subtotal</span><span>R$ {(total - baseDeliveryFee).toFixed(2).replace('.', ',')}</span></div>
+          <div className="flex justify-between"><span>Entrega</span><span>{actualDeliveryFee === 0 ? 'Grátis' : `R$ ${actualDeliveryFee.toFixed(2).replace('.', ',')}`}</span></div>
+          <div className="flex justify-between text-lg font-bold border-t border-dark-200 pt-2"><span>Total</span><span style={{ color: tenant.primaryColor }}>R$ {actualTotal.toFixed(2).replace('.', ',')}</span></div>
         </div>
         {saveError && <p className="text-sm text-red-500 text-center">{saveError}</p>}
         {confirmed ? (
@@ -774,10 +801,10 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
             <p className="text-sm text-dark-500">Redirecionando...</p>
           </div>
         ) : (
-          <button onClick={handleConfirm} disabled={saving || !deliveryMethod || !paymentMethod || (deliveryMethod === 'Entrega' && (!street || !number))}
+          <button onClick={handleConfirm} disabled={saving || !deliveryMethod || !paymentMethod || (deliveryMethod === 'Entrega' && (!street || !number)) || (useZones && deliveryMethod === 'Entrega' && !selectedZoneId)}
             className="w-full py-3.5 rounded-xl text-white font-semibold transition-all disabled:opacity-40"
             style={{ backgroundColor: tenant.primaryColor }}>
-            {saving ? 'Salvando...' : `Confirmar Pedido - R$ ${total.toFixed(2).replace('.', ',')}`}
+            {saving ? 'Salvando...' : `Confirmar Pedido - R$ ${actualTotal.toFixed(2).replace('.', ',')}`}
           </button>
         )}
       </div>

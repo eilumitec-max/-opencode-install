@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Package, ShoppingBag, Users, BarChart3, Settings, LogOut, Plus, Search,
   Edit3, Trash2, ChevronDown, MoreVertical, TrendingUp, DollarSign, Clock,
-  Image as ImageIcon, ExternalLink, Ruler, Palmtree, Wallet, Printer
+  Image as ImageIcon, ExternalLink, Ruler, Palmtree, Wallet, Printer, MapPin
 } from 'lucide-react'
 import { tenants, getTenantById, type Tenant, type TenantProduct, type TenantOrder } from '@/lib/tenants'
 import { playNewOrder, playStatusChange } from '@/lib/sound'
@@ -19,9 +19,10 @@ import {
   fetchTenantTypes, upsertType, deleteTypeById,
   fetchTenantPaymentMethods, upsertPaymentMethod, deletePaymentMethodById,
   updateTenant,
+  fetchDeliveryZones, upsertDeliveryZone, deleteDeliveryZoneById,
 } from '@/lib/supabase-queries'
 
-type Tab = 'dashboard' | 'products' | 'categories' | 'orders' | 'analytics' | 'settings' | 'sizes' | 'types' | 'payments'
+type Tab = 'dashboard' | 'products' | 'categories' | 'orders' | 'analytics' | 'settings' | 'sizes' | 'types' | 'payments' | 'delivery'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -51,6 +52,7 @@ export default function AdminPage() {
     { key: 'sizes', label: 'Tamanhos', icon: Ruler },
     { key: 'types', label: 'Sabores', icon: Palmtree },
     { key: 'payments', label: 'Pagamentos', icon: Wallet },
+    { key: 'delivery', label: 'Entrega', icon: MapPin },
     { key: 'orders', label: 'Pedidos', icon: Users },
     { key: 'analytics', label: 'Analytics', icon: BarChart3 },
     { key: 'settings', label: 'Configurações', icon: Settings },
@@ -111,6 +113,7 @@ export default function AdminPage() {
               {tab === 'sizes' && <SizesTab tenant={tenant} />}
               {tab === 'types' && <TypesTab tenant={tenant} />}
               {tab === 'payments' && <PaymentsTab tenant={tenant} />}
+              {tab === 'delivery' && <DeliveryTab tenant={tenant} />}
               {tab === 'analytics' && <AnalyticsTab tenant={tenant} />}
               {tab === 'settings' && <SettingsTab tenant={tenant} />}
             </motion.div>
@@ -908,6 +911,94 @@ function PaymentsTab({ tenant }: { tenant: Tenant }) {
             </div>
           </motion.div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+function DeliveryTab({ tenant }: { tenant: Tenant }) {
+  const [zones, setZones] = useState<any[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', fee: '' })
+  const [showAdd, setShowAdd] = useState(false)
+  const [newZone, setNewZone] = useState({ name: '', fee: '' })
+
+  useEffect(() => { fetchDeliveryZones(tenant.id).then(setZones) }, [tenant.id])
+
+  const addZone = () => {
+    if (!newZone.name || !newZone.fee) return
+    const z = { id: `dz${Date.now()}`, tenant_id: tenant.id, name: newZone.name, fee: parseFloat(newZone.fee), active: true }
+    setZones(prev => [...prev, z]); upsertDeliveryZone(z); setNewZone({ name: '', fee: '' }); setShowAdd(false)
+  }
+  const startEdit = (z: any) => { setEditingId(z.id); setEditForm({ name: z.name, fee: String(z.fee) }) }
+  const saveEdit = (id: string) => {
+    if (!editForm.name || !editForm.fee) return
+    setZones(prev => prev.map(z => z.id === id ? { ...z, name: editForm.name, fee: parseFloat(editForm.fee) } : z))
+    upsertDeliveryZone({ id, tenant_id: tenant.id, name: editForm.name, fee: parseFloat(editForm.fee) }); setEditingId(null)
+  }
+  const toggleActive = (id: string) => {
+    setZones(prev => prev.map(z => z.id === id ? { ...z, active: !z.active } : z))
+    const z = zones.find(x => x.id === id); if (z) upsertDeliveryZone({ ...z, active: !z.active, tenant_id: tenant.id })
+  }
+  const deleteZone = (id: string) => { setZones(prev => prev.filter(z => z.id !== id)); deleteDeliveryZoneById(id, tenant.id) }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div><h2 className="text-2xl font-bold text-white font-display">Taxa de Entrega por Bairro</h2><p className="text-dark-400 text-sm mt-1">{zones.length} bairros configurados</p></div>
+        <button onClick={() => setShowAdd(true)} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Novo Bairro</button>
+      </div>
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl p-5 space-y-3">
+        <p className="text-sm text-dark-400">Defina a taxa de entrega para cada bairro. O cliente verá um dropdown no checkout para selecionar o bairro dele. Se nenhum bairro for configurado, a taxa fixa em Configurações será usada.</p>
+      </div>
+      <AnimatePresence>{showAdd && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-5 overflow-hidden">
+          <h3 className="font-semibold text-white mb-4">Novo Bairro</h3>
+          <div className="flex items-end gap-4">
+            <div><label className="text-xs text-dark-400 block mb-1">Bairro</label><input value={newZone.name} onChange={e => setNewZone({ ...newZone, name: e.target.value })} className="input-dark" placeholder="Ex: Centro" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Taxa (R$)</label><input type="number" step="0.5" min="0" value={newZone.fee} onChange={e => setNewZone({ ...newZone, fee: e.target.value })} className="input-dark w-28" placeholder="5,00" /></div>
+            <div className="flex gap-2 pb-0.5"><button onClick={addZone} className="btn-primary text-sm">Adicionar</button><button onClick={() => setShowAdd(false)} className="btn-outline text-sm">Cancelar</button></div>
+          </div>
+        </motion.div>
+      )}</AnimatePresence>
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-dark-800 text-dark-400 text-xs uppercase tracking-wider">
+            <th className="text-left p-4 font-medium">Bairro</th><th className="text-left p-4 font-medium">Taxa</th><th className="text-left p-4 font-medium">Status</th><th className="text-right p-4 font-medium">Ações</th>
+          </tr></thead>
+          <tbody>{zones.length === 0 ? (
+            <tr><td colSpan={4} className="p-8 text-center text-dark-500 text-sm">Nenhum bairro cadastrado. Adicione os bairros que você atende.</td></tr>
+          ) : zones.map(z => editingId === z.id ? (
+            <tr key={z.id} className="border-b border-dark-800/50"><td colSpan={4} className="p-4">
+              <div className="flex items-center gap-3">
+                <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="input-dark w-40" />
+                <input type="number" step="0.5" value={editForm.fee} onChange={e => setEditForm({ ...editForm, fee: e.target.value })} className="input-dark w-24" />
+                <button onClick={() => saveEdit(z.id)} className="btn-primary text-sm">Salvar</button>
+                <button onClick={() => setEditingId(null)} className="btn-outline text-sm">Cancelar</button>
+              </div>
+            </td></tr>
+          ) : (
+            <tr key={z.id} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
+              <td className="p-4"><span className="font-medium text-white">{z.name}</span></td>
+              <td className="p-4"><span className="text-white font-medium">R$ {parseFloat(z.fee).toFixed(2).replace('.', ',')}</span></td>
+              <td className="p-4"><button onClick={() => toggleActive(z.id)} className={`px-3 py-1 rounded-full text-xs font-medium ${z.active ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'}`}>{z.active ? 'Ativo' : 'Inativo'}</button></td>
+              <td className="p-4 text-right"><div className="flex items-center justify-end gap-2">
+                <button onClick={() => startEdit(z)} className="p-2 rounded-lg hover:bg-dark-700 text-dark-400 hover:text-primary-400"><Edit3 className="w-4 h-4" /></button>
+                <button onClick={() => deleteZone(z.id)} className="p-2 rounded-lg hover:bg-dark-700 text-dark-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+              </div></td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
+        <h3 className="font-semibold text-white mb-3">Como funciona</h3>
+        <ol className="text-sm text-dark-400 space-y-2 list-decimal list-inside">
+          <li>Cadastre os bairros que sua loja atende</li>
+          <li>Defina a taxa de entrega específica para cada bairro</li>
+          <li>O cliente vê um dropdown com os bairros disponíveis no checkout</li>
+          <li>A taxa de entrega muda automaticamente conforme o bairro selecionado</li>
+          <li>Se nenhum bairro for cadastrado, a taxa fixa em Configurações será usada</li>
+        </ol>
       </div>
     </div>
   )
