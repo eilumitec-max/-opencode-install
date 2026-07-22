@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
@@ -31,6 +32,8 @@ export async function POST(request: Request) {
       user_id: authData.user.id, tenant_id: tenantId, email, role: 'admin',
     })
     if (linkError) return NextResponse.json({ error: linkError.message }, { status: 500 })
+
+    sendWelcomeEmail(email, storeName, slug)
 
     return NextResponse.json({ tenantId, slug })
   } catch (err: any) {
