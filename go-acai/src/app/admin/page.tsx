@@ -919,9 +919,9 @@ function PaymentsTab({ tenant }: { tenant: Tenant }) {
 function DeliveryTab({ tenant }: { tenant: Tenant }) {
   const [zones, setZones] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', fee: '', distanceKm: '' })
+  const [editForm, setEditForm] = useState({ name: '', fee: '', distanceKm: '', cep: '' })
   const [showAdd, setShowAdd] = useState(false)
-  const [newZone, setNewZone] = useState({ name: '', fee: '', distanceKm: '' })
+  const [newZone, setNewZone] = useState({ name: '', fee: '', distanceKm: '', cep: '' })
   const [estimating, setEstimating] = useState(false)
 
   useEffect(() => { fetchDeliveryZones(tenant.id).then(setZones) }, [tenant.id])
@@ -930,14 +930,14 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
 
   const addZone = () => {
     if (!newZone.name || !newZone.fee) return
-    const z = { id: `dz${Date.now()}`, tenant_id: tenant.id, name: newZone.name, fee: parseFloat(newZone.fee), distance_km: parseFloat(newZone.distanceKm) || 0, active: true }
-    setZones(prev => [...prev, z]); upsertDeliveryZone(z); setNewZone({ name: '', fee: '', distanceKm: '' }); setShowAdd(false)
+    const z = { id: `dz${Date.now()}`, tenant_id: tenant.id, name: newZone.name, fee: parseFloat(newZone.fee), distance_km: parseFloat(newZone.distanceKm) || 0, cep: newZone.cep.replace(/\D/g, ''), active: true }
+    setZones(prev => [...prev, z]); upsertDeliveryZone(z); setNewZone({ name: '', fee: '', distanceKm: '', cep: '' }); setShowAdd(false)
   }
-  const startEdit = (z: any) => { setEditingId(z.id); setEditForm({ name: z.name, fee: String(z.fee), distanceKm: String(z.distance_km || '') }) }
+  const startEdit = (z: any) => { setEditingId(z.id); setEditForm({ name: z.name, fee: String(z.fee), distanceKm: String(z.distance_km || ''), cep: z.cep || '' }) }
   const saveEdit = (id: string) => {
     if (!editForm.name || !editForm.fee) return
-    setZones(prev => prev.map(z => z.id === id ? { ...z, name: editForm.name, fee: parseFloat(editForm.fee), distance_km: parseFloat(editForm.distanceKm) || 0 } : z))
-    upsertDeliveryZone({ id, tenant_id: tenant.id, name: editForm.name, fee: parseFloat(editForm.fee), distance_km: parseFloat(editForm.distanceKm) || 0 }); setEditingId(null)
+    setZones(prev => prev.map(z => z.id === id ? { ...z, name: editForm.name, fee: parseFloat(editForm.fee), distance_km: parseFloat(editForm.distanceKm) || 0, cep: editForm.cep.replace(/\D/g, '') } : z))
+    upsertDeliveryZone({ id, tenant_id: tenant.id, name: editForm.name, fee: parseFloat(editForm.fee), distance_km: parseFloat(editForm.distanceKm) || 0, cep: editForm.cep.replace(/\D/g, '') }); setEditingId(null)
   }
   const toggleActive = (id: string) => {
     setZones(prev => prev.map(z => z.id === id ? { ...z, active: !z.active } : z))
@@ -959,6 +959,7 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
           <h3 className="font-semibold text-white mb-4">Novo Bairro</h3>
           <div className="flex items-end gap-4 flex-wrap">
             <div><label className="text-xs text-dark-400 block mb-1">Bairro</label><input value={newZone.name} onChange={e => setNewZone({ ...newZone, name: e.target.value })} className="input-dark" placeholder="Ex: Centro" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">CEP</label><input value={newZone.cep} onChange={e => setNewZone({ ...newZone, cep: e.target.value })} className="input-dark w-28" placeholder="00000-000" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Distância (km)</label><input type="number" step="0.1" min="0" value={newZone.distanceKm} onChange={e => { const km = e.target.value; setNewZone(z => ({ ...z, distanceKm: km, fee: km ? String(calcFeeFromDistance(parseFloat(km))) : z.fee })) }} className="input-dark w-24" placeholder="0,0" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Taxa (R$)</label><input type="number" step="0.5" min="0" value={newZone.fee} onChange={e => setNewZone({ ...newZone, fee: e.target.value })} className="input-dark w-28" placeholder="5,00" /></div>
             <div className="flex gap-2 pb-0.5"><button onClick={addZone} className="btn-primary text-sm">Adicionar</button><button onClick={() => setShowAdd(false)} className="btn-outline text-sm">Cancelar</button></div>
@@ -968,14 +969,15 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
       <div className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
           <thead><tr className="border-b border-dark-800 text-dark-400 text-xs uppercase tracking-wider">
-            <th className="text-left p-4 font-medium">Bairro</th><th className="text-left p-4 font-medium">Distância</th><th className="text-left p-4 font-medium">Taxa</th><th className="text-left p-4 font-medium">Status</th><th className="text-right p-4 font-medium">Ações</th>
+            <th className="text-left p-4 font-medium">Bairro</th><th className="text-left p-4 font-medium">CEP</th><th className="text-left p-4 font-medium">Distância</th><th className="text-left p-4 font-medium">Taxa</th><th className="text-left p-4 font-medium">Status</th><th className="text-right p-4 font-medium">Ações</th>
           </tr></thead>
           <tbody>{zones.length === 0 ? (
-            <tr><td colSpan={5} className="p-8 text-center text-dark-500 text-sm">Nenhum bairro cadastrado. Adicione os bairros que você atende.</td></tr>
+            <tr><td colSpan={6} className="p-8 text-center text-dark-500 text-sm">Nenhum bairro cadastrado. Adicione os bairros que você atende.</td></tr>
           ) : zones.map(z => editingId === z.id ? (
-            <tr key={z.id} className="border-b border-dark-800/50"><td colSpan={5} className="p-4">
+            <tr key={z.id} className="border-b border-dark-800/50"><td colSpan={6} className="p-4">
               <div className="flex items-center gap-3 flex-wrap">
                 <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="input-dark w-40" />
+                <input value={editForm.cep} onChange={e => setEditForm({ ...editForm, cep: e.target.value })} className="input-dark w-24" placeholder="CEP" />
                 <input type="number" step="0.1" value={editForm.distanceKm} onChange={e => { const km = e.target.value; setEditForm(f => ({ ...f, distanceKm: km, fee: km ? String(calcFeeFromDistance(parseFloat(km))) : f.fee })) }} className="input-dark w-20" />
                 <input type="number" step="0.5" value={editForm.fee} onChange={e => setEditForm({ ...editForm, fee: e.target.value })} className="input-dark w-24" />
                 <button onClick={() => saveEdit(z.id)} className="btn-primary text-sm">Salvar</button>
@@ -985,6 +987,7 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
           ) : (
             <tr key={z.id} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
               <td className="p-4"><span className="font-medium text-white">{z.name}</span></td>
+              <td className="p-4"><span className="text-dark-400 text-xs">{z.cep || '-'}</span></td>
               <td className="p-4"><span className="text-dark-400">{z.distance_km ? `${z.distance_km} km` : '-'}</span></td>
               <td className="p-4"><span className="text-white font-medium">R$ {parseFloat(z.fee).toFixed(2).replace('.', ',')}</span></td>
               <td className="p-4"><button onClick={() => toggleActive(z.id)} className={`px-3 py-1 rounded-full text-xs font-medium ${z.active ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'}`}>{z.active ? 'Ativo' : 'Inativo'}</button></td>
@@ -1006,7 +1009,7 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
             try {
               const city = tenant.address.split(',').pop()?.trim() || ''
               const results = await Promise.all(zones.filter(z => z.active).map(async (z) => {
-                const r = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeAddress: tenant.address, zoneName: z.name, city }) })
+                const r = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeAddress: tenant.address, zoneName: z.name, city, zoneCep: z.cep || undefined }) })
                 return r.ok ? r.json() : null
               }))
               const updated = await Promise.all(zones.map(async (z) => {
@@ -1026,7 +1029,7 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
         <div className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
           <h3 className="font-semibold text-white mb-3">Como funciona</h3>
           <ol className="text-sm text-dark-400 space-y-2 list-decimal list-inside">
-            <li>Cadastre os bairros que sua loja atende</li>
+            <li>Cadastre os bairros que sua loja atende (com CEP opcional para melhor precisão)</li>
             <li>Defina a distância de cada bairro (ou use "Estimar via OpenStreetMap")</li>
             <li>A taxa é calculada automaticamente: distância × preço por km</li>
             <li>O cliente vê um dropdown com os bairros disponíveis no checkout</li>
@@ -1074,10 +1077,12 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
   const [whatsapp, setWhatsapp] = useState(tenant.whatsapp)
   const [minOrder, setMinOrder] = useState(String(tenant.minOrder))
   const [storeAddress, setStoreAddress] = useState(tenant.address)
+  const [storeCep, setStoreCep] = useState('')
   const [pricePerKm, setPricePerKm] = useState(String(tenant.pricePerKm || ''))
   const [storeLat, setStoreLat] = useState(String(tenant.latitude || ''))
   const [storeLng, setStoreLng] = useState(String(tenant.longitude || ''))
   const [geocoding, setGeocoding] = useState(false)
+  const [searchingCep, setSearchingCep] = useState(false)
   const [dbStatus, setDbStatus] = useState<'checking' | 'ok' | 'error'>('checking')
   const [dbCount, setDbCount] = useState(0)
   const [lastOrders, setLastOrders] = useState<any[]>([])
@@ -1175,16 +1180,17 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             <div><label className="text-xs text-dark-400 block mb-1">Taxa de Entrega (R$)</label><input className="input-dark" value={deliveryFee} onChange={e => setDeliveryFee(e.target.value)} placeholder="0,00" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">WhatsApp</label><input className="input-dark" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Mínimo p/ Pedido (R$)</label><input className="input-dark" value={minOrder} onChange={e => setMinOrder(e.target.value)} /></div>
-            <div className="sm:col-span-2"><label className="text-xs text-dark-400 block mb-1">Endereço</label><input className="input-dark w-full" value={storeAddress} onChange={e => setStoreAddress(e.target.value)} /></div>
+            <div className="sm:col-span-2"><label className="text-xs text-dark-400 block mb-1">Endereço</label><div className="flex gap-2"><input className="input-dark flex-1" value={storeAddress} onChange={e => setStoreAddress(e.target.value)} /><button onClick={async () => { if (!storeCep) { alert('Digite o CEP primeiro.'); return }; setSearchingCep(true); try { const r = await fetch(`https://viacep.com.br/ws/${storeCep.replace(/\D/g,'')}/json/`); const d = await r.json(); if (d.erro) { alert('CEP não encontrado'); return }; setStoreAddress(`${d.logradouro}, ${d.bairro}`) } catch (e: any) { alert('Erro: ' + e.message) }; setSearchingCep(false) }} disabled={searchingCep} className="px-3 py-2 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors text-sm shrink-0">{searchingCep ? '...' : 'Buscar CEP'}</button></div></div>
+            <div><label className="text-xs text-dark-400 block mb-1">CEP</label><input className="input-dark" value={storeCep} onChange={e => setStoreCep(e.target.value)} placeholder="00000-000" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Preço por km (R$)</label><input type="number" step="0.1" min="0" value={pricePerKm} onChange={e => setPricePerKm(e.target.value)} className="input-dark" placeholder="0,00" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Latitude</label><input className="input-dark" value={storeLat} onChange={e => setStoreLat(e.target.value)} placeholder="Preenchido via geocode" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Longitude</label><input className="input-dark" value={storeLng} onChange={e => setStoreLng(e.target.value)} placeholder="Preenchido via geocode" /></div>
             <div className="sm:col-span-2">
               <button onClick={async () => {
-                if (!storeAddress) { alert('Digite o endereço da loja primeiro.'); return }
+                if (!storeAddress && !storeCep) { alert('Digite o endereço ou CEP da loja.'); return }
                 setGeocoding(true)
                 try {
-                  const r = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeAddress, zoneName: 'endereço', city: storeAddress.split(',').pop()?.trim() || '' }) })
+                  const r = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeAddress: storeAddress || undefined, storeCep: storeCep || undefined, zoneName: 'endereço' }) })
                   if (!r.ok) { const e = await r.json(); alert(e.error); return }
                   const d = await r.json()
                   setStoreLat(String(d.storeLat))
