@@ -1,7 +1,22 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
+async function getUserFromSession(req: Request) {
+  const authHeader = req.headers.get('authorization') || ''
+  const token = authHeader.replace('Bearer ', '')
+  if (!token) return null
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const client = createClient(supabaseUrl, anonKey)
+  const { data } = await client.auth.getUser(token)
+  return data.user
+}
+
 export async function POST(req: Request) {
+  const user = await getUserFromSession(req)
+  if (!user) return NextResponse.json({ error: 'Não autorizado. Faça login primeiro.' }, { status: 401 })
+
   const { phone, title, body, url } = await req.json()
   if (!phone || !title) return NextResponse.json({ error: 'Missing data' }, { status: 400 })
 

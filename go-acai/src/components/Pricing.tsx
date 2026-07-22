@@ -5,31 +5,26 @@ import { Check, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 const features = [
-  'App próprio na Play Store e App Store',
+  'App PWA instalável no celular do cliente',
   'Link de vendas personalizado (seunome.goacai.com.br)',
   'QR Codes ilimitados para mesa/balcão/delivery',
   'Painel administrativo completo',
-  'Montagem guiada: Tigela/Copo → Tamanho → Base → Coberturas → Frutas → Complementos',
-  'Mercado Pago integrado (PIX, Cartão, Boleto)',
-  'Entregadores com GPS + Rotas otimizadas',
-  'Área de entrega no mapa (polígonos + taxa por região)',
-  'Fidelidade: pontos, cashback, indicação, aniversário',
-  'Cupons, promoções, combos, horários de funcionamento',
-  'Relatórios: faturamento, ticket médio, top produtos, clientes',
-  'Financeiro: conciliação, extrato, fluxo de caixa',
-  'Multi-usuário com permissões (caixa, cozinha, gerente, entregador)',
-  'Impressão automática (cozinha + expedição + cupom fiscal)',
-  'Notificações: Push, Email, WhatsApp, SMS',
-  'Login Google OAuth + Email/Senha + Recuperação',
-  'LGPD + Criptografia + Backups diários + 99.9% SLA',
-  'Atualizações automáticas + Novas features sem custo',
-  'Suporte: WhatsApp + Email + Chamados (horário estendido)',
-  'Onboarding guiado + Base de conhecimento + Vídeos',
-  'API aberta para integração com ERP/Contabilidade',
-  'Funciona offline (PWA) + Modo quiosque para tablet',
+  'Montagem guiada: Tigela/Copo → Tamanho → Coberturas → Frutas → Complementos',
+  'Cardápio digital com fotos, preços e categorias',
+  'Notificações Push automáticas (status do pedido)',
+  'Status do pedido em tempo real: Recebido → Preparando → Saiu → Entregue',
+  'Gestão de pedidos: receber, confirmar, finalizar',
+  'Dashboard com pedidos do dia em tempo real',
+  'Mensagens e banner animado por etapa',
+  'Emojis/ícones personalizáveis por item',
+  'Preços individuais por complemento',
+  'Ativar/desativar categorias e produtos',
   'Tema personalizável (cores, logo, banner, fontes)',
-  'Importação de dados (CSV/Excel) na migração',
-  'Painel master para redes/franquias (desconto progressivo)',
+  'LGPD + Criptografia + Backups diários',
+  'Atualizações automáticas + Novas features sem custo',
+  'Suporte prioritário via WhatsApp e Email',
+  'Funciona offline (PWA)',
+  ('Em breve: Mercado Pago, Cupons, Fidelidade, App nas Stores'),
 ]
 
 export function Pricing() {
@@ -51,10 +46,10 @@ export function Pricing() {
             Plano Único • Sem Fidelidade
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-dark-900 mb-4">
-            Tudo incluso por <span className="text-gradient">R$ 29,90/mês</span>
+            Planos a partir de <span className="text-gradient">R$ 15/mês</span>
           </h2>
           <p className="text-lg text-dark-500">
-            7 dias grátis • App próprio nas stores • Painel completo • Mercado Pago • Suporte
+            7 dias grátis • App PWA • Painel completo • Notificações Push • Suporte
           </p>
         </motion.div>
 
@@ -78,8 +73,8 @@ export function Pricing() {
 
             <div className="space-y-4 mb-8">
               <div className="text-center">
-                <span className="text-5xl sm:text-6xl font-display font-bold text-gradient">R$ 29,90</span>
-                <span className="text-dark-400 ml-1">/mês</span>
+                <span className="text-5xl sm:text-6xl font-display font-bold text-gradient">R$ 15</span>
+                <span className="text-dark-400 ml-1">/mês (plano anual)</span>
               </div>
               <p className="text-center text-sm text-dark-500">Após 7 dias grátis • Cancele quando quiser</p>
             </div>

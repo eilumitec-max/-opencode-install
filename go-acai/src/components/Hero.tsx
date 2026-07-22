@@ -12,10 +12,10 @@ const features = [
 ]
 
 const stats = [
-  { value: '500+', label: 'Lojas Ativas' },
-  { value: '50k+', label: 'Pedidos/Mês' },
-  { value: '4.9★', label: 'Avaliação' },
-  { value: '99.9%', label: 'Uptime' },
+  { value: '7 Dias', label: 'Teste Grátis' },
+  { value: 'R$ 15', label: '/mês (anuual)' },
+  { value: '100%', label: 'Do lucro é seu' },
+  { value: 'Zero', label: 'Fidelidade' },
 ]
 
 export function Hero() {

@@ -48,9 +48,7 @@ export const metadata: Metadata = {
     description: 'Tenha seu próprio aplicativo de delivery para açaí, sorveterias e gelaterias. Teste grátis por 7 dias.',
     images: ['/og-image.png'],
   },
-  verification: {
-    google: 'google-site-verification-code',
-  },
+
 }
 
 export const viewport: Viewport = {

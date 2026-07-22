@@ -2,34 +2,21 @@ import Link from 'next/link'
 import { ShoppingBag, Facebook, Instagram, MessageSquare, Mail, MapPin, Phone, ArrowRight, ArrowUp } from 'lucide-react'
 
 const footerLinks = {
-  produto: [
+  navegar: [
     { label: 'Início', href: '/' },
     { label: 'Plano', href: '#precos' },
-    { label: 'Demonstração', href: '#demo' },
-    { label: 'Como Funciona', href: '#como-funciona' },
+    { label: 'Demonstração', href: '/demo' },
     { label: 'Benefícios', href: '#beneficios' },
-    { label: 'Comparativo', href: '#comparativo' },
+    { label: 'FAQ', href: '#faq' },
   ],
-  empresa: [
-    { label: 'Sobre Nós', href: '#sobre' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Carreiras', href: '/carreiras' },
-    { label: 'Imprensa', href: '/imprensa' },
-    { label: 'Parceiros', href: '/parceiros' },
+  conta: [
+    { label: 'Entrar', href: '/login' },
+    { label: 'Criar Loja', href: '/signup' },
+    { label: 'Demonstração', href: '/demo' },
   ],
-  suporte: [
-    { label: 'Central de Ajuda', href: '/ajuda' },
-    { label: 'Documentação', href: '/docs' },
-    { label: 'API', href: '/api-docs' },
-    { label: 'Status do Sistema', href: '/status' },
-    { label: 'Contato', href: '#contato' },
-  ],
-  legal: [
-    { label: 'Política de Privacidade', href: '/privacidade' },
-    { label: 'Termos de Uso', href: '/termos' },
-    { label: 'LGPD', href: '/lgpd' },
-    { label: 'Cookies', href: '/cookies' },
-    { label: 'Segurança', href: '/seguranca' },
+  contato: [
+    { label: 'WhatsApp', href: 'https://wa.me/5511999999999' },
+    { label: 'Email', href: 'mailto:oi@goacai.com.br' },
   ],
 }
 
@@ -77,10 +64,10 @@ export function Footer() {
             </div>
           </div>
 
-          <nav className="lg:col-span-1" aria-label="Produto">
-            <h4 className="font-semibold text-white mb-4">Produto</h4>
+          <nav className="lg:col-span-1" aria-label="Navegar">
+            <h4 className="font-semibold text-white mb-4">Navegar</h4>
             <ul className="space-y-3">
-              {footerLinks.produto.map((link) => (
+              {footerLinks.navegar.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -94,10 +81,10 @@ export function Footer() {
             </ul>
           </nav>
 
-          <nav className="lg:col-span-1" aria-label="Empresa">
-            <h4 className="font-semibold text-white mb-4">Empresa</h4>
+          <nav className="lg:col-span-1" aria-label="Conta">
+            <h4 className="font-semibold text-white mb-4">Conta</h4>
             <ul className="space-y-3">
-              {footerLinks.empresa.map((link) => (
+              {footerLinks.conta.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -111,67 +98,22 @@ export function Footer() {
             </ul>
           </nav>
 
-          <nav className="lg:col-span-1" aria-label="Suporte">
-            <h4 className="font-semibold text-white mb-4">Suporte</h4>
-            <ul className="space-y-3">
-              {footerLinks.suporte.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-dark-400 hover:text-primary-400 text-sm transition-colors flex items-center gap-2 group"
-                  >
-                    {link.label}
-                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <nav className="lg:col-span-1" aria-label="Legal">
-            <h4 className="font-semibold text-white mb-4">Legal</h4>
-            <ul className="space-y-3">
-              {footerLinks.legal.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-dark-400 hover:text-primary-400 text-sm transition-colors flex items-center gap-2 group"
-                  >
-                    {link.label}
-                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="lg:col-span-1">
+          <nav className="lg:col-span-1" aria-label="Contato">
             <h4 className="font-semibold text-white mb-4">Contato</h4>
-            <ul className="space-y-3 text-sm text-dark-400">
-              <li className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-primary-400 flex-shrink-0" />
-                <span>São Paulo - SP</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-primary-400 flex-shrink-0" />
-                <a href="tel:+5511999999999" className="hover:text-primary-400 transition-colors">
-                  (11) 99999-9999
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-primary-400 flex-shrink-0" />
-                <a href="mailto:oi@goacai.com.br" className="hover:text-primary-400 transition-colors">
-                  oi@goacai.com.br
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <MessageSquare className="w-5 h-5 text-secondary-400 flex-shrink-0" />
-                <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="hover:text-secondary-400 transition-colors">
-                  WhatsApp Comercial
-                </a>
-              </li>
+            <ul className="space-y-3">
+              {footerLinks.contato.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-dark-400 hover:text-primary-400 text-sm transition-colors flex items-center gap-2 group"
+                  >
+                    {link.label}
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
+          </nav>
         </div>
 
         <div className="border-t border-dark-800 pt-8">
@@ -183,9 +125,8 @@ export function Footer() {
             <div className="flex items-center gap-6 text-sm text-dark-500">
               <span>Feito com <span className="text-red-400">♥</span> para donos de açaí</span>
               <span className="hidden sm:inline">|</span>
-              <Link href="/privacidade" className="hover:text-primary-400 transition-colors">Privacidade</Link>
-              <Link href="/termos" className="hover:text-primary-400 transition-colors">Termos</Link>
-              <Link href="/lgpd" className="hover:text-primary-400 transition-colors">LGPD</Link>
+              <span className="text-dark-500">Privacidade</span>
+              <span className="text-dark-500">Termos</span>
             </div>
 
             <div className="flex items-center gap-3">

@@ -70,12 +70,7 @@ export function Navbar() {
               <LogIn className="w-4 h-4" aria-hidden="true" />
               Entrar
             </Link>
-            <Link
-              href="/admin"
-              className="text-sm font-medium text-dark-400 hover:text-primary-500 transition-colors px-3 py-2"
-            >
-              Admin
-            </Link>
+
             <Link
               href="/signup"
               className="btn-primary px-6 py-2 text-sm"

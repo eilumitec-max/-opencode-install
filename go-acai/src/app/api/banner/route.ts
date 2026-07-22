@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+
+async function getUserFromSession(req: Request) {
+  const authHeader = req.headers.get('authorization') || ''
+  const token = authHeader.replace('Bearer ', '')
+  if (!token) return null
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const client = createClient(supabaseUrl, anonKey)
+  const { data } = await client.auth.getUser(token)
+  return data.user
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -13,8 +25,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const user = await getUserFromSession(req)
+  if (!user) return NextResponse.json({ error: 'Não autorizado. Faça login primeiro.' }, { status: 401 })
+
   const { tenantId, banner, stepMessages, itemIcons, itemPrices } = await req.json()
   if (!tenantId) return NextResponse.json({ error: 'Missing tenantId' }, { status: 400 })
+
+  const { data: link } = await supabaseAdmin.from('tenant_users').select('user_id').eq('tenant_id', tenantId).eq('user_id', user.id).single()
+  if (!link) return NextResponse.json({ error: 'Acesso negado a esta loja.' }, { status: 403 })
 
   const { data: existing } = await supabaseAdmin.storage.from('push-subs').download(`config-${tenantId}.json`)
   const config = existing ? JSON.parse(await existing.text()) : {}

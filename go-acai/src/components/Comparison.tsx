@@ -39,7 +39,6 @@ const comparison = [
     category: 'Tecnologia & Segurança',
     items: [
       { feature: 'LGPD & Segurança', goAcai: true, whatsapp: false, detail: 'Dados criptografados, HTTPS obrigatório' },
-      { feature: 'Login Google OAuth', goAcai: true, whatsapp: false, detail: 'Login rápido sem senha' },
       { feature: 'PWA (Instalável)', goAcai: true, whatsapp: false, detail: 'Funciona no celular, instala como app' },
     ],
   },

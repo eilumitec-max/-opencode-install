@@ -21,28 +21,12 @@ const faqs = [
     a: 'Zero fidelidade. Cancele quando quiser, sem multa, sem burocracia. Seu acesso permanece até o fim do período pago.',
   },
   {
-    q: 'Como recebo os pagamentos?',
-    a: 'Integrado ao Mercado Pago. PIX cai na hora, cartão em 1 dia útil. Vai direto pra sua conta Mercado Pago. Taxas são as do Mercado Pago.',
-  },
-  {
     q: 'Meus dados ficam seguros?',
-    a: 'Sim. Criptografia ponta a ponta, LGPD, backups diários, servidores no Brasil, HTTPS obrigatório, tokens JWT, rate limiting, WAF.',
-  },
-  {
-    q: 'Consigo migrar do WhatsApp/outro sistema?',
-    a: 'Sim. Importamos seus produtos, clientes e categorias via planilha (CSV/Excel). Nossa equipe ajuda na migração gratuita.',
-  },
-  {
-    q: 'E se eu tiver mais de uma loja?',
-    a: 'Cada loja tem sua conta separada (multi-tenant). Painel master para ver tudo consolidado. Desconto progressivo a partir da 2ª loja.',
-  },
-  {
-    q: 'O app vai na Play Store e App Store?',
-    a: 'Sim! Publicamos com sua marca, seu ícone, suas cores. Cuidamos de todo processo: contas developer, builds, aprovação, updates.',
+    a: 'Sim. Criptografia ponta a ponta, backups diários, servidores no Brasil, HTTPS obrigatório.',
   },
   {
     q: 'Qual o suporte oferecido?',
-    a: 'WhatsApp, Email, Chamados no painel. Horário comercial estendido. Onboarding guiado. Base de conhecimento. Vídeos tutoriais.',
+    a: 'Suporte via WhatsApp e Email durante o horário comercial. Estamos sempre disponíveis para ajudar.',
   },
 ]
 

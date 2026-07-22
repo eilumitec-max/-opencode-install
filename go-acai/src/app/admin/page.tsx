@@ -23,16 +23,6 @@ export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   useEffect(() => {
-    const stored = localStorage.getItem('goacai_tenant')
-    if (stored) {
-      const { id } = JSON.parse(stored)
-      const t = getTenantById(id)
-      if (t) {
-        setTenant(t)
-        fetchTenantById(id).then(sb => { if (sb) setTenant(sb) })
-        return
-      }
-    }
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push('/login'); return }
       const { data: link } = await supabase.from('tenant_users').select('tenant_id').eq('user_id', session.user.id).single()
@@ -165,14 +155,17 @@ function DashboardTab({ tenant }: { tenant: Tenant }) {
       updatedAt: Date.now()
     }))
     if (order?.phone) {
-      fetch('/api/push/send', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: order.phone,
-          title: 'Pedido Atualizado!',
-          body: `${order.customer}, seu pedido ${id} agora está: ${status === 'preparing' ? 'Preparando' : status === 'shipped' ? 'Saiu pra entrega' : status === 'delivered' ? 'Entregue!' : status === 'cancelled' ? 'Cancelado' : 'Pendente'}`,
-          url: `/app/${tenant.slug}`,
-        }),
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const token = session?.access_token || ''
+        fetch('/api/push/send', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            phone: order.phone,
+            title: 'Pedido Atualizado!',
+            body: `${order.customer}, seu pedido ${id} agora está: ${status === 'preparing' ? 'Preparando' : status === 'shipped' ? 'Saiu pra entrega' : status === 'delivered' ? 'Entregue!' : status === 'cancelled' ? 'Cancelado' : 'Pendente'}`,
+            url: `/app/${tenant.slug}`,
+          }),
+        })
       })
     }
   }
@@ -542,14 +535,17 @@ function OrdersTab({ tenant }: { tenant: Tenant }) {
     playStatusChange(newStatus)
     const order = orders.find(o => o.id === id)
     if (order?.phone) {
-      fetch('/api/push/send', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: order.phone,
-          title: 'Pedido Atualizado!',
-          body: `${order.customer}, seu pedido agora está: ${newStatus === 'preparing' ? 'Preparando' : newStatus === 'shipped' ? 'Saiu pra entrega' : newStatus === 'delivered' ? 'Entregue!' : newStatus === 'cancelled' ? 'Cancelado' : 'Pendente'}`,
-          url: `/app/${tenant.slug}`,
-        }),
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const token = session?.access_token || ''
+        fetch('/api/push/send', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            phone: order.phone,
+            title: 'Pedido Atualizado!',
+            body: `${order.customer}, seu pedido agora está: ${newStatus === 'preparing' ? 'Preparando' : newStatus === 'shipped' ? 'Saiu pra entrega' : newStatus === 'delivered' ? 'Entregue!' : newStatus === 'cancelled' ? 'Cancelado' : 'Pendente'}`,
+            url: `/app/${tenant.slug}`,
+          }),
+        })
       })
     }
   }
@@ -617,50 +613,10 @@ function AnalyticsTab({ tenant }: { tenant: Tenant }) {
   return (
     <div className="space-y-6">
       <div><h2 className="text-2xl font-bold text-white font-display">Analytics</h2><p className="text-dark-400 text-sm mt-1">Métricas de {tenant.name}</p></div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-          <h3 className="font-semibold text-white mb-4">Vendas por Horário</h3>
-          <div className="flex items-end gap-2 h-40">
-            {['09', '11', '13', '15', '17', '19', '21'].map(h => (
-              <div key={h} className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-full bg-gradient-to-t from-primary-500 to-primary-400 rounded-t-lg" style={{ height: `${20 + Math.random() * 80}%` }} />
-                <span className="text-xs text-dark-500">{h}h</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-          <h3 className="font-semibold text-white mb-4">Produtos Mais Vendidos</h3>
-          <div className="space-y-3">
-            {tenant.products.sort((a, b) => b.sales - a.sales).slice(0, 5).map((p, i) => (
-              <div key={p.id} className="flex items-center gap-3">
-                <span className="text-sm font-bold text-dark-400 w-6 text-right">#{i + 1}</span>
-                <div className="flex-1">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-white">{p.name}</span>
-                    <span className="text-sm text-dark-400">{p.sales} vendas</span>
-                  </div>
-                  <div className="h-2 bg-dark-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full" style={{ width: `${(p.sales / tenant.products[0]?.sales) * 100}%` }} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: 'Faturamento Semanal', value: 'R$ 8.429,00', change: '+15,3%' },
-          { label: 'Faturamento Mensal', value: 'R$ 34.156,00', change: '+8,7%' },
-          { label: 'Faturamento Anual', value: 'R$ 386.520,00', change: '+42,1%' },
-        ].map(item => (
-          <div key={item.label} className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
-            <p className="text-sm text-dark-400 mb-1">{item.label}</p>
-            <p className="text-2xl font-bold text-white">{item.value}</p>
-            <span className="text-xs font-medium text-green-400">{item.change}</span>
-          </div>
-        ))}
+      <div className="bg-dark-900 border border-dark-800 rounded-2xl p-8 text-center">
+        <BarChart3 className="w-16 h-16 text-dark-600 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-white mb-2">Em breve</h3>
+        <p className="text-dark-400 text-sm">Os gráficos e relatórios detalhados estarão disponíveis em breve. Por enquanto, acompanhe seus pedidos na aba Dashboard.</p>
       </div>
     </div>
   )
@@ -787,7 +743,9 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
                 <input className="input-dark flex-1" value={banner} onChange={e => setBanner(e.target.value)} placeholder="Ex: 🎉 Cliente novo? Cupom BEMVINDO e ganhe 10% off!" />
                 <button onClick={async () => {
                   setBannerMsg('Salvando...')
-                  const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: tenant.id, banner, stepMessages, itemIcons, itemPrices }) })
+                  const { data: { session } } = await supabase.auth.getSession()
+                  const token = session?.access_token || ''
+                  const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ tenantId: tenant.id, banner, stepMessages, itemIcons, itemPrices }) })
                   if (r.ok) setBannerMsg('✅ Salvo!')
                   else { const d = await r.json(); setBannerMsg(`Erro: ${d.error}`) }
                   setTimeout(() => setBannerMsg(''), 3000)
@@ -876,7 +834,16 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
         </div>
 
         <div className="border-t border-dark-800 pt-6">
-          <button className="btn-primary">Salvar Configurações</button>
+          <button onClick={async () => {
+            setBannerMsg('Salvando...')
+            const { data: { session } } = await supabase.auth.getSession()
+            const token = session?.access_token || ''
+            const r = await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ tenantId: tenant.id, banner, stepMessages, itemIcons, itemPrices }) })
+            if (r.ok) setBannerMsg('✅ Todas as configurações salvas!')
+            else { const d = await r.json(); setBannerMsg(`Erro: ${d.error}`) }
+            setTimeout(() => setBannerMsg(''), 3000)
+          }} className="btn-primary">Salvar Configurações</button>
+          {bannerMsg && <p className="text-xs text-dark-400 mt-2">{bannerMsg}</p>}
         </div>
       </div>
     </div>

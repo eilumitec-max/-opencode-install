@@ -1,80 +1,68 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle, Shield, Zap, Smartphone, CreditCard, Globe, Users, Lock, RefreshCw, Database, BarChart3, Bell, ShoppingBag, MapPin, Truck, Headphones, Cpu, Wifi, LockKeyhole, Crown, Award, Heart, Star, Rocket, Sparkles } from 'lucide-react'
+import { CheckCircle, Zap, Globe, Smartphone, Bell, BarChart3, ShoppingBag, Palette, Tags, MessageSquare, Settings, Lock } from 'lucide-react'
 
 const benefits = [
   {
     icon: ShoppingBag,
-    title: 'App Próprio nas Stores',
-    desc: 'Publicamos seu app na Play Store e App Store com sua marca, ícone e cores. Seus clientes baixam e pedem direto.',
+    title: 'App PWA Instalável',
+    desc: 'Seu cliente adiciona na tela inicial do celular como um app de verdade. Funciona offline, recebe notificações, pede em 1 clique.',
     color: 'from-primary-500 to-primary-400',
   },
   {
     icon: Globe,
     title: 'Link de Vendas + QR Codes',
-    desc: 'Compartilhe no WhatsApp, Instagram, Bio. QR Code na mesa, balcão, delivery. Vende sem precisar do app instalado.',
+    desc: 'Compartilhe no WhatsApp, Instagram, Bio. QR Code na mesa, balcão, delivery. Vende sem precisar baixar nada.',
     color: 'from-accent-500 to-accent-400',
   },
   {
     icon: Zap,
-    title: 'Montagem Guiada (Totem)',
-    desc: 'Tigela/Copo → Tamanho → Base → Coberturas → Frutas → Complementos → Resumo → Carrinho → Checkout. Zero erro.',
+    title: 'Montagem Guiada',
+    desc: 'Tigela/Copo → Tamanho → Coberturas → Frutas → Complementos → Carrinho → Checkout. Experiência completa sem erro.',
     color: 'from-secondary-500 to-teal-500',
   },
   {
-    icon: CreditCard,
-    title: 'Mercado Pago Integrado',
-    desc: 'PIX cai na hora, cartão em 1 dia útil. Vai direto pra sua conta Mercado Pago. Taxas transparentes do MP.',
+    icon: Bell,
+    title: 'Notificações Push',
+    desc: 'Cliente recebe notificação automática: Pedido recebido, preparando, saiu para entrega, entregue. Acompanhamento em tempo real.',
     color: 'from-blue-500 to-indigo-500',
   },
   {
-    icon: Crown,
-    title: 'Fidelidade & Cupons',
-    desc: 'Pontos por compra, cashback automático, cupom aniversário, indicação de amigos, cupons promocionais. Cliente volta mais.',
-    color: 'from-amber-500 to-orange-500',
-  },
-  {
     icon: BarChart3,
-    title: 'Dashboard Completo',
-    desc: 'Pedidos do dia, faturamento, ticket médio, produtos mais vendidos, clientes novos, pedidos em andamento. Tudo em tempo real.',
+    title: 'Dashboard em Tempo Real',
+    desc: 'Pedidos do dia, status de cada pedido, produtos mais vendidos. Tudo atualizado na hora no painel administrativo.',
     color: 'from-purple-500 to-pink-500',
   },
   {
-    icon: Truck,
-    title: 'Gestão de Entregadores',
-    desc: 'Rotas otimizadas, GPS tempo real, comissão automática, documentos, disponibilidade. Entrega mais rápida e barata.',
-    color: 'from-green-500 to-emerald-500',
-  },
-  {
-    icon: MapPin,
-    title: 'Área de Entrega no Mapa',
-    desc: 'Desenhe polígonos, taxa por km/região, tempo estimado. Cliente vê se atende antes de montar pedido.',
-    color: 'from-cyan-500 to-blue-500',
-  },
-  {
-    icon: Bell,
-    title: 'Notificações Automáticas',
-    desc: 'Push, Email, WhatsApp: Pedido recebido, em preparo, saiu para entrega, entregue. Cliente informado, você tranquilo.',
-    color: 'from-indigo-500 to-violet-500',
-  },
-  {
-    icon: Users,
-    title: 'Multi-usuário & Permissões',
-    desc: 'Caixa, Cozinha, Gerente, Entregador. Cada um vê só o que precisa. Controle total de acesso.',
+    icon: MessageSquare,
+    title: 'Mensagens por Etapa',
+    desc: 'Mensagens animadas com gradiente colorido em cada etapa da montagem. Banner promocional configurável no topo.',
     color: 'from-rose-500 to-pink-500',
   },
   {
-    icon: Lock,
-    title: 'LGPD & Segurança Bancária',
-    desc: 'Criptografia ponta a ponta, LGPD, backups diários, servidores no Brasil, HTTPS obrigatório, tokens JWT, rate limiting, Captcha, WAF.',
-    color: 'from-slate-500 to-gray-500',
+    icon: Palette,
+    title: 'Tema Personalizável',
+    desc: 'Cores, logo (emoji), banner, fontes. Sua identidade visual em cada detalhe do app do cliente.',
+    color: 'from-violet-500 to-purple-500',
   },
   {
-    icon: RefreshCw,
-    title: 'Atualizações Gratuitas',
-    desc: 'Novas features, melhorias, correções de segurança. Tudo incluso no R$ 29,90. Sem custo extra, sem trabalho seu.',
-    color: 'from-emerald-500 to-teal-500',
+    icon: Tags,
+    title: 'Emojis & Preços por Item',
+    desc: 'Emojis personalizados para cada produto. Preços individuais para coberturas, frutas e complementos.',
+    color: 'from-amber-500 to-orange-500',
+  },
+  {
+    icon: Settings,
+    title: 'Ativar/Desativar Itens',
+    desc: 'Ative ou desative categorias e produtos a qualquer momento. Itens desativados somem automaticamente do cardápio.',
+    color: 'from-cyan-500 to-blue-500',
+  },
+  {
+    icon: Lock,
+    title: 'LGPD & Segurança',
+    desc: 'Criptografia ponta a ponta, backups diários, servidores no Brasil, HTTPS obrigatório.',
+    color: 'from-slate-500 to-gray-500',
   },
 ]
 
@@ -98,7 +86,7 @@ export function Benefits() {
             Tudo que seu <span className="text-gradient">delivery precisa</span>
           </h2>
           <p className="text-lg text-dark-500">
-            12 funcionalidades essenciais inclusas no R$ 29,90. Sem adicionais, sem surpresas.
+            Funcionalidades essenciais para seu delivery. Planos a partir de R$ 15/mês.
           </p>
         </motion.div>
 
