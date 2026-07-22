@@ -59,9 +59,9 @@ export default function TenantAppPage() {
   const [toast, setToast] = useState('')
   const [installPrompt, setInstallPrompt] = useState<any>(null)
   const [showInstall, setShowInstall] = useState(false)
-  const [dynamicToppings, setDynamicToppings] = useState<string[]>([])
-  const [dynamicFruits, setDynamicFruits] = useState<string[]>([])
-  const [dynamicExtras, setDynamicExtras] = useState<string[]>([])
+  const [dynamicToppings, setDynamicToppings] = useState<string[] | null>(null)
+  const [dynamicFruits, setDynamicFruits] = useState<string[] | null>(null)
+  const [dynamicExtras, setDynamicExtras] = useState<string[] | null>(null)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
 
@@ -73,14 +73,20 @@ export default function TenantAppPage() {
         const activeCats = sbTenant.categories.filter(c => c.active)
         const activeProds = sbTenant.products.filter(p => p.active)
         const byCat = (name: string) => activeCats.some(c => c.name === name)
-        if (byCat('Coberturas')) setDynamicToppings(activeProds.filter(p => p.category === 'Coberturas').map(p => p.name))
-        if (byCat('Frutas')) setDynamicFruits(activeProds.filter(p => p.category === 'Frutas').map(p => p.name))
-        if (byCat('Complementos')) setDynamicExtras(activeProds.filter(p => p.category === 'Complementos').map(p => p.name))
+        setDynamicToppings(byCat('Coberturas') ? activeProds.filter(p => p.category === 'Coberturas').map(p => p.name) : [])
+        setDynamicFruits(byCat('Frutas') ? activeProds.filter(p => p.category === 'Frutas').map(p => p.name) : [])
+        setDynamicExtras(byCat('Complementos') ? activeProds.filter(p => p.category === 'Complementos').map(p => p.name) : [])
       } else {
+        setDynamicToppings(null)
+        setDynamicFruits(null)
+        setDynamicExtras(null)
         const t = getTenantBySlug(slug)
         if (t) setTenant(t)
       }
     }).catch(() => {
+      setDynamicToppings(null)
+      setDynamicFruits(null)
+      setDynamicExtras(null)
       const t = getTenantBySlug(slug)
       if (t) setTenant(t)
     })
@@ -243,7 +249,7 @@ export default function TenantAppPage() {
                   <AnimatedText text={sm('toppings', '🍫 Você tem direito a 2 coberturas grátis! (R$ 1,50 cada adicional)')} className="font-display text-base font-bold text-amber-800" />
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(dynamicToppings.length ? dynamicToppings : toppingsList).map(item => (
+                  {(dynamicToppings !== null ? dynamicToppings : toppingsList).map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                       onClick={() => setOrder({ ...order, toppings: toggleItem(order.toppings, item) })}
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-full border-2 transition-all ${order.toppings.includes(item) ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-dark-200 hover:border-primary-200 text-dark-700'}`}>
@@ -261,7 +267,7 @@ export default function TenantAppPage() {
                   <AnimatedText text={sm('fruits', '🍓 Você tem direito a 3 frutas grátis! Escolha as suas favoritas')} className="font-display text-base font-bold text-green-800" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {(dynamicFruits.length ? dynamicFruits : fruitsList).map(item => (
+                  {(dynamicFruits !== null ? dynamicFruits : fruitsList).map(item => (
                     <motion.button key={item} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       onClick={() => setOrder({ ...order, fruits: toggleItem(order.fruits, item) })}
                       className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${order.fruits.includes(item) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
@@ -279,7 +285,7 @@ export default function TenantAppPage() {
                   <AnimatedText text={sm('extras', '🥜 Adicione quantos complementos quiser! (R$ 2,00 cada)')} className="font-display text-base font-bold text-purple-800" />
                 </div>
                 <div className="space-y-2">
-                  {(dynamicExtras.length ? dynamicExtras : extrasList).map(item => (
+                  {(dynamicExtras !== null ? dynamicExtras : extrasList).map(item => (
                     <motion.button key={item} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}
                       onClick={() => setOrder({ ...order, extras: toggleItem(order.extras, item) })}
                       className={`flex items-center gap-3 w-full p-3 rounded-xl border-2 transition-all ${order.extras.includes(item) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-primary-200'}`}>
