@@ -919,22 +919,25 @@ function PaymentsTab({ tenant }: { tenant: Tenant }) {
 function DeliveryTab({ tenant }: { tenant: Tenant }) {
   const [zones, setZones] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', fee: '' })
+  const [editForm, setEditForm] = useState({ name: '', fee: '', distanceKm: '' })
   const [showAdd, setShowAdd] = useState(false)
-  const [newZone, setNewZone] = useState({ name: '', fee: '' })
+  const [newZone, setNewZone] = useState({ name: '', fee: '', distanceKm: '' })
+  const [estimating, setEstimating] = useState(false)
 
   useEffect(() => { fetchDeliveryZones(tenant.id).then(setZones) }, [tenant.id])
 
+  const calcFeeFromDistance = (km: number) => Math.round(km * (tenant.pricePerKm || 0) * 100) / 100
+
   const addZone = () => {
     if (!newZone.name || !newZone.fee) return
-    const z = { id: `dz${Date.now()}`, tenant_id: tenant.id, name: newZone.name, fee: parseFloat(newZone.fee), active: true }
-    setZones(prev => [...prev, z]); upsertDeliveryZone(z); setNewZone({ name: '', fee: '' }); setShowAdd(false)
+    const z = { id: `dz${Date.now()}`, tenant_id: tenant.id, name: newZone.name, fee: parseFloat(newZone.fee), distance_km: parseFloat(newZone.distanceKm) || 0, active: true }
+    setZones(prev => [...prev, z]); upsertDeliveryZone(z); setNewZone({ name: '', fee: '', distanceKm: '' }); setShowAdd(false)
   }
-  const startEdit = (z: any) => { setEditingId(z.id); setEditForm({ name: z.name, fee: String(z.fee) }) }
+  const startEdit = (z: any) => { setEditingId(z.id); setEditForm({ name: z.name, fee: String(z.fee), distanceKm: String(z.distance_km || '') }) }
   const saveEdit = (id: string) => {
     if (!editForm.name || !editForm.fee) return
-    setZones(prev => prev.map(z => z.id === id ? { ...z, name: editForm.name, fee: parseFloat(editForm.fee) } : z))
-    upsertDeliveryZone({ id, tenant_id: tenant.id, name: editForm.name, fee: parseFloat(editForm.fee) }); setEditingId(null)
+    setZones(prev => prev.map(z => z.id === id ? { ...z, name: editForm.name, fee: parseFloat(editForm.fee), distance_km: parseFloat(editForm.distanceKm) || 0 } : z))
+    upsertDeliveryZone({ id, tenant_id: tenant.id, name: editForm.name, fee: parseFloat(editForm.fee), distance_km: parseFloat(editForm.distanceKm) || 0 }); setEditingId(null)
   }
   const toggleActive = (id: string) => {
     setZones(prev => prev.map(z => z.id === id ? { ...z, active: !z.active } : z))
@@ -954,8 +957,9 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
       <AnimatePresence>{showAdd && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-dark-900 border border-dark-800 rounded-2xl p-5 overflow-hidden">
           <h3 className="font-semibold text-white mb-4">Novo Bairro</h3>
-          <div className="flex items-end gap-4">
+          <div className="flex items-end gap-4 flex-wrap">
             <div><label className="text-xs text-dark-400 block mb-1">Bairro</label><input value={newZone.name} onChange={e => setNewZone({ ...newZone, name: e.target.value })} className="input-dark" placeholder="Ex: Centro" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Distância (km)</label><input type="number" step="0.1" min="0" value={newZone.distanceKm} onChange={e => { const km = e.target.value; setNewZone(z => ({ ...z, distanceKm: km, fee: km ? String(calcFeeFromDistance(parseFloat(km))) : z.fee })) }} className="input-dark w-24" placeholder="0,0" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Taxa (R$)</label><input type="number" step="0.5" min="0" value={newZone.fee} onChange={e => setNewZone({ ...newZone, fee: e.target.value })} className="input-dark w-28" placeholder="5,00" /></div>
             <div className="flex gap-2 pb-0.5"><button onClick={addZone} className="btn-primary text-sm">Adicionar</button><button onClick={() => setShowAdd(false)} className="btn-outline text-sm">Cancelar</button></div>
           </div>
@@ -964,14 +968,15 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
       <div className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
           <thead><tr className="border-b border-dark-800 text-dark-400 text-xs uppercase tracking-wider">
-            <th className="text-left p-4 font-medium">Bairro</th><th className="text-left p-4 font-medium">Taxa</th><th className="text-left p-4 font-medium">Status</th><th className="text-right p-4 font-medium">Ações</th>
+            <th className="text-left p-4 font-medium">Bairro</th><th className="text-left p-4 font-medium">Distância</th><th className="text-left p-4 font-medium">Taxa</th><th className="text-left p-4 font-medium">Status</th><th className="text-right p-4 font-medium">Ações</th>
           </tr></thead>
           <tbody>{zones.length === 0 ? (
-            <tr><td colSpan={4} className="p-8 text-center text-dark-500 text-sm">Nenhum bairro cadastrado. Adicione os bairros que você atende.</td></tr>
+            <tr><td colSpan={5} className="p-8 text-center text-dark-500 text-sm">Nenhum bairro cadastrado. Adicione os bairros que você atende.</td></tr>
           ) : zones.map(z => editingId === z.id ? (
-            <tr key={z.id} className="border-b border-dark-800/50"><td colSpan={4} className="p-4">
-              <div className="flex items-center gap-3">
+            <tr key={z.id} className="border-b border-dark-800/50"><td colSpan={5} className="p-4">
+              <div className="flex items-center gap-3 flex-wrap">
                 <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="input-dark w-40" />
+                <input type="number" step="0.1" value={editForm.distanceKm} onChange={e => { const km = e.target.value; setEditForm(f => ({ ...f, distanceKm: km, fee: km ? String(calcFeeFromDistance(parseFloat(km))) : f.fee })) }} className="input-dark w-20" />
                 <input type="number" step="0.5" value={editForm.fee} onChange={e => setEditForm({ ...editForm, fee: e.target.value })} className="input-dark w-24" />
                 <button onClick={() => saveEdit(z.id)} className="btn-primary text-sm">Salvar</button>
                 <button onClick={() => setEditingId(null)} className="btn-outline text-sm">Cancelar</button>
@@ -980,6 +985,7 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
           ) : (
             <tr key={z.id} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
               <td className="p-4"><span className="font-medium text-white">{z.name}</span></td>
+              <td className="p-4"><span className="text-dark-400">{z.distance_km ? `${z.distance_km} km` : '-'}</span></td>
               <td className="p-4"><span className="text-white font-medium">R$ {parseFloat(z.fee).toFixed(2).replace('.', ',')}</span></td>
               <td className="p-4"><button onClick={() => toggleActive(z.id)} className={`px-3 py-1 rounded-full text-xs font-medium ${z.active ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'}`}>{z.active ? 'Ativo' : 'Inativo'}</button></td>
               <td className="p-4 text-right"><div className="flex items-center justify-end gap-2">
@@ -990,15 +996,44 @@ function DeliveryTab({ tenant }: { tenant: Tenant }) {
           ))}</tbody>
         </table>
       </div>
-      <div className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
-        <h3 className="font-semibold text-white mb-3">Como funciona</h3>
-        <ol className="text-sm text-dark-400 space-y-2 list-decimal list-inside">
-          <li>Cadastre os bairros que sua loja atende</li>
-          <li>Defina a taxa de entrega específica para cada bairro</li>
-          <li>O cliente vê um dropdown com os bairros disponíveis no checkout</li>
-          <li>A taxa de entrega muda automaticamente conforme o bairro selecionado</li>
-          <li>Se nenhum bairro for cadastrado, a taxa fixa em Configurações será usada</li>
-        </ol>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
+          <h3 className="font-semibold text-white mb-3">Precificação por Distância</h3>
+          <p className="text-sm text-dark-400 mb-3">Configure o <strong className="text-white">Preço por km</strong> na aba Configurações. Ao definir a distância de cada bairro, a taxa é auto-calculada (distância × preço por km). Você pode ajustar manualmente se preferir.</p>
+          <button onClick={async () => {
+            if (!tenant.address) { alert('Defina o endereço da loja na aba Configurações primeiro.'); return }
+            setEstimating(true)
+            try {
+              const city = tenant.address.split(',').pop()?.trim() || ''
+              const results = await Promise.all(zones.filter(z => z.active).map(async (z) => {
+                const r = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeAddress: tenant.address, zoneName: z.name, city }) })
+                return r.ok ? r.json() : null
+              }))
+              const updated = await Promise.all(zones.map(async (z) => {
+                const idx = zones.findIndex(x => x.id === z.id)
+                const result = idx >= 0 && results[idx]
+                if (!result) return z
+                const km = result.distanceKm
+                const fee = calcFeeFromDistance(km)
+                await upsertDeliveryZone({ ...z, distance_km: km, fee, tenant_id: tenant.id })
+                return { ...z, distance_km: km, fee }
+              }))
+              setZones(updated)
+            } catch (e: any) { alert('Erro ao estimar: ' + e.message) }
+            setEstimating(false)
+          }} disabled={estimating} className="btn-outline text-sm"><MapPin className="w-4 h-4" />{estimating ? 'Estimando...' : 'Estimar via OpenStreetMap'}</button>
+        </div>
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-5">
+          <h3 className="font-semibold text-white mb-3">Como funciona</h3>
+          <ol className="text-sm text-dark-400 space-y-2 list-decimal list-inside">
+            <li>Cadastre os bairros que sua loja atende</li>
+            <li>Defina a distância de cada bairro (ou use "Estimar via OpenStreetMap")</li>
+            <li>A taxa é calculada automaticamente: distância × preço por km</li>
+            <li>O cliente vê um dropdown com os bairros disponíveis no checkout</li>
+            <li>A taxa de entrega muda automaticamente conforme o bairro selecionado</li>
+            <li>Se nenhum bairro for cadastrado, a taxa fixa em Configurações será usada</li>
+          </ol>
+        </div>
       </div>
     </div>
   )
@@ -1039,6 +1074,10 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
   const [whatsapp, setWhatsapp] = useState(tenant.whatsapp)
   const [minOrder, setMinOrder] = useState(String(tenant.minOrder))
   const [storeAddress, setStoreAddress] = useState(tenant.address)
+  const [pricePerKm, setPricePerKm] = useState(String(tenant.pricePerKm || ''))
+  const [storeLat, setStoreLat] = useState(String(tenant.latitude || ''))
+  const [storeLng, setStoreLng] = useState(String(tenant.longitude || ''))
+  const [geocoding, setGeocoding] = useState(false)
   const [dbStatus, setDbStatus] = useState<'checking' | 'ok' | 'error'>('checking')
   const [dbCount, setDbCount] = useState(0)
   const [lastOrders, setLastOrders] = useState<any[]>([])
@@ -1137,6 +1176,23 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             <div><label className="text-xs text-dark-400 block mb-1">WhatsApp</label><input className="input-dark" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Mínimo p/ Pedido (R$)</label><input className="input-dark" value={minOrder} onChange={e => setMinOrder(e.target.value)} /></div>
             <div className="sm:col-span-2"><label className="text-xs text-dark-400 block mb-1">Endereço</label><input className="input-dark w-full" value={storeAddress} onChange={e => setStoreAddress(e.target.value)} /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Preço por km (R$)</label><input type="number" step="0.1" min="0" value={pricePerKm} onChange={e => setPricePerKm(e.target.value)} className="input-dark" placeholder="0,00" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Latitude</label><input className="input-dark" value={storeLat} onChange={e => setStoreLat(e.target.value)} placeholder="Preenchido via geocode" /></div>
+            <div><label className="text-xs text-dark-400 block mb-1">Longitude</label><input className="input-dark" value={storeLng} onChange={e => setStoreLng(e.target.value)} placeholder="Preenchido via geocode" /></div>
+            <div className="sm:col-span-2">
+              <button onClick={async () => {
+                if (!storeAddress) { alert('Digite o endereço da loja primeiro.'); return }
+                setGeocoding(true)
+                try {
+                  const r = await fetch('/api/geocode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storeAddress, zoneName: 'endereço', city: storeAddress.split(',').pop()?.trim() || '' }) })
+                  if (!r.ok) { const e = await r.json(); alert(e.error); return }
+                  const d = await r.json()
+                  setStoreLat(String(d.storeLat))
+                  setStoreLng(String(d.storeLon))
+                } catch (e: any) { alert('Erro: ' + e.message) }
+                setGeocoding(false)
+              }} disabled={geocoding} className="btn-outline text-sm"><MapPin className="w-4 h-4" />{geocoding ? 'Geocodificando...' : 'Geocodificar Endereço'}</button>
+            </div>
             <div className="sm:col-span-2">
               <label className="text-xs text-dark-400 block mb-1">Mensagem / Banner do App</label>
               <div className="flex gap-2">
@@ -1242,7 +1298,7 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
             const openDays = workingDays.filter(d => d.open)
             const hoursStr = openDays.length > 0 ? `${openDays[0].start} - ${openDays[openDays.length - 1].end}` : 'Fechado'
             const wh = workingDays.map(d => `${d.open ? '' : '(Fechado) '}${d.day}: ${d.open ? `${d.start} às ${d.end}` : '-'}`).join('; ')
-            await updateTenant(tenant.id, { name: storeName, delivery_fee: parseFloat(deliveryFee) || 0, whatsapp, min_order: parseFloat(minOrder) || 0, address: storeAddress, working_hours: wh })
+            await updateTenant(tenant.id, { name: storeName, delivery_fee: parseFloat(deliveryFee) || 0, whatsapp, min_order: parseFloat(minOrder) || 0, address: storeAddress, working_hours: wh, price_per_km: parseFloat(pricePerKm) || 0, latitude: parseFloat(storeLat) || null, longitude: parseFloat(storeLng) || null })
             if (r.ok) setBannerMsg('✅ Todas as configurações salvas!')
             else { const d = await r.json(); setBannerMsg(`Erro: ${d.error}`) }
             setTimeout(() => setBannerMsg(''), 3000)

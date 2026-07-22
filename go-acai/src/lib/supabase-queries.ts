@@ -9,6 +9,7 @@ function mapTenant(row: any): Tenant {
     primaryColor: row.primary_color, whatsapp: row.whatsapp, address: row.address,
     deliveryFee: row.delivery_fee, minOrder: row.min_order,
     workingHours: row.working_hours, installments: row.installments,
+    pricePerKm: row.price_per_km || 0, latitude: row.latitude, longitude: row.longitude,
     products: [], categories: [], orders: [],
   }
 }
@@ -36,7 +37,7 @@ export async function fetchTenantById(id: string): Promise<Tenant | null> {
     status: r.status, payment: r.payment, method: r.method, date: r.date, address: r.address,
   }))
   if (deliveryZones.data) tenant.deliveryZones = deliveryZones.data.map((r: any) => ({
-    id: r.id, name: r.name, fee: r.fee, active: r.active,
+    id: r.id, name: r.name, fee: r.fee, distanceKm: r.distance_km || 0, active: r.active,
   }))
   return tenant
 }

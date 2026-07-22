@@ -23,13 +23,14 @@ go-acai/
 │   ├── app/
 │   │   ├── page.tsx                      # Landing page institucional
 │   │   ├── layout.tsx                    # Root layout + SW registration
-│   │   ├── admin/page.tsx                # Admin dashboard (885 linhas, 6 abas)
+│   │   ├── admin/page.tsx                # Admin dashboard (10 abas: Dashboard, Produtos, Categorias, Pedidos, Analytics, Configurações, Tamanhos, Tipos, Pagamentos, Entrega)
 │   │   ├── app/[slug]/page.tsx           # App do cliente (982 linhas)
 │   │   ├── login/page.tsx                # Tela de login
 │   │   ├── signup/page.tsx               # Cadastro de nova loja
 │   │   ├── demo/page.tsx                 # Demo interativa
 │   │   ├── api/
 │   │   │   ├── banner/route.ts           # GET/POST config (banner, messages, icons, prices)
+│   │   │   ├── geocode/route.ts          # Geocoding OpenStreetMap + Haversine
 │   │   │   ├── push/subscribe/route.ts   # Salvar push subscription
 │   │   │   ├── push/send/route.ts        # Enviar push notification (web-push + VAPID)
 │   │   │   └── signup/route.ts           # Criar usuário + tenant
@@ -56,6 +57,8 @@ go-acai/
 │   ├── migrations/001_schema.sql         # Schema: tenants, categories, products, orders
 │   ├── migrations/002_auth.sql           # tenant_users
 │   ├── migrations/003_customers.sql      # customers + triggers
+│   ├── migrations/005_delivery_zones.sql # delivery_zones table
+│   ├── migrations/006_delivery_distance.sql # distance_km, price_per_km, lat/lng
 │   └── seed.sql                          # Seed data
 ├── .env.local                            # Env vars (NÃO COMMITAR)
 ├── next.config.js
@@ -69,10 +72,11 @@ go-acai/
 ## Interfaces TypeScript (`src/lib/tenants.ts`)
 
 ```ts
-Tenant           { id, slug, name, logo, primaryColor, whatsapp, address, deliveryFee, minOrder, workingHours, installments, banner?, products[], categories[], orders[] }
+Tenant           { id, slug, name, logo, primaryColor, whatsapp, address, deliveryFee, minOrder, workingHours, installments, banner?, pricePerKm, latitude, longitude, products[], categories[], orders[] }
 TenantProduct    { id, name, category, price, oldPrice?, stock, image, active, featured, sales }
 TenantCategory   { id, name, icon, active, order }
 TenantOrder      { id, customer, phone?, items[], total, status, payment, method, date, address }
+DeliveryZone     { id, name, fee, distanceKm, active }
 ```
 
 ---
@@ -93,7 +97,7 @@ TenantOrder      { id, customer, phone?, items[], total, status, payment, method
 ## Supabase
 
 ### Tabelas
-- `tenants`, `categories`, `products`, `orders`, `tenant_users`, `customers`
+- `tenants`, `categories`, `products`, `orders`, `tenant_users`, `customers`, `delivery_zones`
 
 ### Storage Buckets
 - `push-subs`: subscriptions push (`{phone}.json`) + configs (`config-{tenantId}.json`)
@@ -187,3 +191,6 @@ npx next build --no-lint  # Build sem lint
 - O sistema funciona sem Supabase usando dados mock, mas pedidos não persistem
 - A tabela `orders` precisa de Realtime ativado para o dashboard receber pedidos ao vivo
 - Sons de notificação usam Web Audio API (`src/lib/sound.ts`) — tocam no admin ao receber/mudar pedidos
+- Entrega por bairro: tabela `delivery_zones`, admin tab "Entrega", checkout dropdown com cálculo de taxa por zona
+- Precificação por distância: coluna `distance_km` em delivery_zones, `price_per_km` em tenants, auto-cálculo: distância × preço por km, geocoding gratuito via OpenStreetMap (`/api/geocode`)
+- `/api/geocode/route.ts`: POST com `{ storeAddress, zoneName, city, state }`, retorna `{ distanceKm, storeLat, storeLon }` usando Nominatim + fórmula de Haversine

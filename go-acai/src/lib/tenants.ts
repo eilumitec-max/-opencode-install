@@ -2,6 +2,7 @@ export interface DeliveryZone {
   id: string
   name: string
   fee: number
+  distanceKm: number
   active: boolean
 }
 
@@ -18,6 +19,9 @@ export interface Tenant {
   workingHours: string
   installments: string
   banner?: string
+  pricePerKm: number
+  latitude: number | null
+  longitude: number | null
   products: TenantProduct[]
   categories: TenantCategory[]
   orders: TenantOrder[]
@@ -72,6 +76,9 @@ export const tenants: Tenant[] = [
     workingHours: '09:00 - 22:00',
     installments: 'Até 12x',
     banner: '🎉 Cliente novo? Use o cupom BEMVINDO e ganhe 10% off na primeira compra!',
+    pricePerKm: 0,
+    latitude: null,
+    longitude: null,
     products: [
       { id: 'p1', name: 'Açaí Tradicional 500ml', category: 'Açaís', price: 19.90, oldPrice: 24.90, stock: 50, image: '', active: true, featured: true, sales: 342 },
       { id: 'p2', name: 'Açaí Zero 500ml', category: 'Açaís', price: 22.90, oldPrice: null, stock: 30, image: '', active: true, featured: false, sales: 156 },
@@ -105,6 +112,9 @@ export const tenants: Tenant[] = [
     workingHours: '10:00 - 23:00',
     installments: 'Até 6x',
     banner: '🍦 Compre 2 Gelatos e leve 1 brinde surpresa!',
+    pricePerKm: 0,
+    latitude: null,
+    longitude: null,
     products: [
       { id: 'p1', name: 'Gelato Cremoso 300ml', category: 'Gelatos', price: 18.00, oldPrice: null, stock: 35, image: '', active: true, featured: true, sales: 412 },
       { id: 'p2', name: 'Gelato de Pistache', category: 'Gelatos', price: 22.00, oldPrice: 26.00, stock: 20, image: '', active: true, featured: true, sales: 287 },
@@ -135,6 +145,9 @@ export const tenants: Tenant[] = [
     workingHours: '08:00 - 21:00',
     installments: 'Até 10x',
     banner: '🌟 Frete grátis em pedidos acima de R$ 25,00!',
+    pricePerKm: 0,
+    latitude: null,
+    longitude: null,
     products: [
       { id: 'p1', name: 'Açaí Médio 500ml', category: 'Açaís', price: 17.90, oldPrice: 21.90, stock: 45, image: '', active: true, featured: true, sales: 521 },
       { id: 'p2', name: 'Açaí Pequeno 300ml', category: 'Açaís', price: 13.90, oldPrice: null, stock: 70, image: '', active: true, featured: false, sales: 334 },
