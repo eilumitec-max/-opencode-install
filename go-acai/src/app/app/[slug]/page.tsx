@@ -481,17 +481,21 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
             <div className="space-y-2">
               <p className="text-xs text-dark-400">Telefone: {customerPhone}</p>
               <input value={customerName} onChange={e => setCustomerName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleRegister()}
+                onKeyDown={e => {
+                  if (e.key !== 'Enter') return
+                  if (!customerName.trim()) { showError('Digite seu nome para continuar.'); return }
+                  handleRegister()
+                }}
                 className="w-full bg-dark-50 border-2 border-dark-200 rounded-xl px-5 py-4 text-center text-lg text-dark-900 outline-none focus:border-primary-500 transition-all placeholder:text-dark-400"
                 placeholder="Seu nome completo" autoFocus />
             </div>
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               onClick={() => {
-                if (!customerName.trim()) { showError('O campo nome é obrigatório. Por favor, digite seu nome completo para continuar.'); return }
+                if (!customerName.trim()) { showError('Digite seu nome para continuar.'); return }
                 handleRegister()
               }}
-              className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all disabled:opacity-40"
-              style={{ backgroundColor: tenant.primaryColor }} disabled={!customerName.trim()}>
+              className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all"
+              style={{ backgroundColor: tenant.primaryColor }}>
               Começar <ArrowRight className="w-5 h-5 inline" />
             </motion.button>
           </motion.div>
@@ -531,22 +535,30 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
             <h1 className="text-2xl font-bold font-display text-dark-900">{tenant.name}</h1>
             <p className="text-dark-500 text-sm mt-1">Informe seu telefone para começar</p>
           </div>
-          <div className="space-y-3">
-            <input value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}
-              onBlur={e => lookupCustomer(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') lookupCustomer((e.target as HTMLInputElement).value) }}
-              className="w-full bg-dark-50 border-2 border-dark-200 rounded-xl px-5 py-4 text-center text-lg text-dark-900 outline-none focus:border-primary-500 transition-all placeholder:text-dark-400"
-              placeholder="(11) 99999-8888" autoFocus />
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                const digits = customerPhone.replace(/\D/g, '')
-                if (digits.length < 10) { showError('O telefone informado é inválido. Digite um número com DDD, por exemplo: (11) 99999-8888.'); return }
-                lookupCustomer(customerPhone)
-              }}
-              className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all disabled:opacity-40"
-              style={{ backgroundColor: tenant.primaryColor }} disabled={customerPhone.replace(/\D/g, '').length < 10}>
-              Prosseguir <ArrowRight className="w-5 h-5 inline" />
-            </motion.button>
+            <div className="space-y-3">
+              <input value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}
+                onBlur={e => { const d = e.target.value.replace(/\D/g, ''); if (d.length >= 10) lookupCustomer(e.target.value) }}
+                onKeyDown={e => {
+                  if (e.key !== 'Enter') return
+                  const val = (e.target as HTMLInputElement).value
+                  if (!val.trim()) { showError('Digite seu telefone antes de continuar.'); return }
+                  const digits = val.replace(/\D/g, '')
+                  if (digits.length < 10) { showError('Número inválido. Digite um telefone com DDD, exemplo: (11) 99999-8888.'); return }
+                  lookupCustomer(val)
+                }}
+                className="w-full bg-dark-50 border-2 border-dark-200 rounded-xl px-5 py-4 text-center text-lg text-dark-900 outline-none focus:border-primary-500 transition-all placeholder:text-dark-400"
+                placeholder="(11) 99999-8888" autoFocus />
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  if (!customerPhone.trim()) { showError('Digite seu telefone antes de continuar.'); return }
+                  const digits = customerPhone.replace(/\D/g, '')
+                  if (digits.length < 10) { showError('Número inválido. Digite um telefone com DDD, exemplo: (11) 99999-8888.'); return }
+                  lookupCustomer(customerPhone)
+                }}
+                className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all"
+                style={{ backgroundColor: tenant.primaryColor }}>
+                Prosseguir <ArrowRight className="w-5 h-5 inline" />
+              </motion.button>
             {looking && (
               <div className="flex items-center justify-center gap-2 text-sm text-primary-500">
                 <div className="w-4 h-4 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
