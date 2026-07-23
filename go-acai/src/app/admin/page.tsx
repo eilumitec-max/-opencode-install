@@ -1183,10 +1183,10 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
               <label className="text-xs text-dark-400 block mb-1">Logo da Loja</label>
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-xl bg-dark-800 flex items-center justify-center text-2xl overflow-hidden shrink-0">
-                  {tenant.logo.startsWith('http') ? (
-                    <img src={tenant.logo} alt="logo" className="w-full h-full object-cover" />
+                  {storeLogo.startsWith('http') ? (
+                    <img src={storeLogo} alt="logo" className="w-full h-full object-cover" />
                   ) : (
-                    <span>{tenant.logo}</span>
+                    <span>{storeLogo}</span>
                   )}
                 </div>
                 <label className="cursor-pointer px-4 py-2 rounded-xl bg-dark-800 border border-dark-700 text-sm text-dark-300 hover:text-white hover:border-primary-500/50 transition-all">
@@ -1201,10 +1201,8 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
                     try {
                       const r = await fetch('/api/upload-logo', { method: 'POST', body: fd })
                       const d = await r.json()
-                      if (d.url) {
-                        setStoreLogo(d.url)
-                        tenant.logo = d.url
-                      } else alert('Erro: ' + (d.error || 'unknown'))
+                      if (d.url) setStoreLogo(d.url)
+                      else alert('Erro: ' + (d.error || 'unknown'))
                     } catch (e: any) { alert('Erro ao enviar: ' + e.message) }
                     setLogoUploading(false)
                   }} />
