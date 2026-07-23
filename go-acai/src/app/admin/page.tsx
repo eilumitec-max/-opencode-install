@@ -1195,15 +1195,30 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
                     const file = e.target.files?.[0]
                     if (!file) return
                     setLogoUploading(true)
-                    const fd = new FormData()
-                    fd.append('file', file)
-                    fd.append('tenantId', tenant.id)
                     try {
+                      const img = await createImageBitmap(file)
+                      const size = 512
+                      const canvas = document.createElement('canvas')
+                      canvas.width = size
+                      canvas.height = size
+                      const ctx = canvas.getContext('2d')!
+                      ctx.fillStyle = '#ffffff'
+                      ctx.fillRect(0, 0, size, size)
+                      const s = Math.min(size / img.width, size / img.height)
+                      const x = (size - img.width * s) / 2
+                      const y = (size - img.height * s) / 2
+                      ctx.drawImage(img, x, y, img.width * s, img.height * s)
+                      img.close()
+                      const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
+                      canvas.remove()
+                      const fd = new FormData()
+                      fd.append('file', blob, 'logo.png')
+                      fd.append('tenantId', tenant.id)
                       const r = await fetch('/api/upload-logo', { method: 'POST', body: fd })
                       const d = await r.json()
                       if (d.url) setStoreLogo(d.url)
                       else alert('Erro: ' + (d.error || 'unknown'))
-                    } catch (e: any) { alert('Erro ao enviar: ' + e.message) }
+                    } catch (err: any) { alert('Erro ao processar imagem: ' + err.message) }
                     setLogoUploading(false)
                   }} />
                 </label>
