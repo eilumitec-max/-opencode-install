@@ -217,7 +217,7 @@ export default function TenantAppPage() {
   if (!hasData) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
       <div className="text-center p-8 max-w-md">
-        <div className="text-6xl mb-6">{tenant.logo}</div>
+        <div className="text-6xl mb-6">{tenant.logo.startsWith('http') ? <img src={tenant.logo} className="w-24 h-24 mx-auto object-cover rounded-2xl" /> : tenant.logo}</div>
         <h1 className="text-2xl font-bold font-display mb-2" style={{ color: tenant.primaryColor }}>{tenant.name}</h1>
         <p className="text-dark-500 mb-4">Em breve — Estamos preparando o cardápio!</p>
         <p className="text-sm text-dark-400">Volte mais tarde para fazer seu pedido.</p>
@@ -248,7 +248,7 @@ export default function TenantAppPage() {
               <div className="flex items-center gap-3">
                 <button onClick={goBack} className="p-2 -ml-2 rounded-lg hover:bg-dark-50 transition-colors"><ChevronLeft className="w-5 h-5 text-dark-600" /></button>
                 <div className="flex items-center gap-3" style={{ color: tenant.primaryColor }}>
-                  <span className="text-2xl">{tenant.logo}</span>
+                  {tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-9 h-9 object-cover rounded-lg" /> : <span className="text-2xl">{tenant.logo}</span>}
                   <span className="font-bold text-2xl" style={{ color: tenant.primaryColor }}>
                     {tenant.name.split('').map((ch, i) => (
                       <motion.span
@@ -473,7 +473,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
       <div className="min-h-screen" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
         <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl flex flex-col items-center justify-center p-8">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center space-y-6">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto text-4xl" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo}</div>
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto overflow-hidden" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" /> : <span className="text-4xl">{tenant.logo}</span>}</div>
             <div>
               <h1 className="text-2xl font-bold font-display text-dark-900">Primeira vez aqui?</h1>
               <p className="text-dark-500 text-sm mt-1">Qual seu nome?</p>
@@ -526,7 +526,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
     <div className="min-h-screen" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl flex flex-col items-center justify-center p-8">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center space-y-6">
-          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto text-4xl" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo}</div>
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto overflow-hidden" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" /> : <span className="text-4xl">{tenant.logo}</span>}</div>
           <div>
             <h1 className="text-2xl font-bold font-display text-dark-900">{tenant.name}</h1>
             <p className="text-dark-500 text-sm mt-1">Informe seu telefone para começar</p>
@@ -689,7 +689,7 @@ function CheckoutScreen({ tenant, total, goBack, goTo, customerName, customerPho
           <p className="font-semibold text-dark-900">Finalizar Pedido</p>
         </div>
         <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-50">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo}</div>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" /> : <span className="text-lg">{tenant.logo}</span>}</div>
           <div><p className="font-medium text-dark-900 text-sm">{customerName}</p><p className="text-xs text-dark-500">{order.size} - {order.type}</p></div>
         </div>
         <div className="p-4 rounded-xl bg-dark-50 border border-dark-200 space-y-1.5">
@@ -964,7 +964,7 @@ function TrackingScreen({ tenant, goBack }: { tenant: Tenant; goBack: () => void
     <div className="min-h-screen" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
       <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl p-6 space-y-6">
         <div className="text-center">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo}</div>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" /> : <span className="text-3xl">{tenant.logo}</span>}</div>
           {trackLevel >= 3 ? (
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="space-y-2">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">

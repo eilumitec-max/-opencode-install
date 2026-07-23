@@ -62,7 +62,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-dark-950 flex">
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-dark-900 border-r border-dark-800 transition-all duration-300 flex flex-col fixed h-full z-30`}>
         <div className="p-4 border-b border-dark-800 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-400 flex items-center justify-center flex-shrink-0 text-xl">{tenant.logo}</div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-400 flex items-center justify-center flex-shrink-0 overflow-hidden">{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt="" className="w-full h-full object-cover" /> : <span className="text-xl">{tenant.logo}</span>}</div>
           {sidebarOpen && <div><h1 className="font-bold text-white text-sm">{tenant.name}</h1><p className="text-xs text-dark-400">Admin</p></div>}
         </div>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -97,7 +97,7 @@ export default function AdminPage() {
                 <ExternalLink className="w-4 h-4" /> Ver Meu App
               </Link>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-800 text-xs text-dark-400">
-                <span className="text-lg">{tenant.logo}</span>
+                {tenant.logo.startsWith('http') ? <img src={tenant.logo} alt="" className="w-6 h-6 object-cover rounded" /> : <span className="text-lg">{tenant.logo}</span>}
                 <span>{tenant.name}</span>
               </div>
             </div>
@@ -1087,6 +1087,8 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
   const [dbCount, setDbCount] = useState(0)
   const [lastOrders, setLastOrders] = useState<any[]>([])
   const [testResult, setTestResult] = useState('')
+  const [logoUploading, setLogoUploading] = useState(false)
+  const [storeLogo, setStoreLogo] = useState(tenant.logo)
 
   useEffect(() => {
     fetch(`/api/banner?tenantId=${tenant.id}`).then(r => r.json()).then(d => {
@@ -1177,6 +1179,39 @@ function SettingsTab({ tenant }: { tenant: Tenant }) {
           <h3 className="font-semibold text-white mb-4">Informações da Loja</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="text-xs text-dark-400 block mb-1">Nome</label><input className="input-dark" value={storeName} onChange={e => setStoreName(e.target.value)} /></div>
+            <div>
+              <label className="text-xs text-dark-400 block mb-1">Logo da Loja</label>
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-xl bg-dark-800 flex items-center justify-center text-2xl overflow-hidden shrink-0">
+                  {tenant.logo.startsWith('http') ? (
+                    <img src={tenant.logo} alt="logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{tenant.logo}</span>
+                  )}
+                </div>
+                <label className="cursor-pointer px-4 py-2 rounded-xl bg-dark-800 border border-dark-700 text-sm text-dark-300 hover:text-white hover:border-primary-500/50 transition-all">
+                  {logoUploading ? 'Enviando...' : 'Trocar Logo'}
+                  <input type="file" accept="image/*" className="hidden" disabled={logoUploading} onChange={async e => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    setLogoUploading(true)
+                    const fd = new FormData()
+                    fd.append('file', file)
+                    fd.append('tenantId', tenant.id)
+                    try {
+                      const r = await fetch('/api/upload-logo', { method: 'POST', body: fd })
+                      const d = await r.json()
+                      if (d.url) {
+                        setStoreLogo(d.url)
+                        tenant.logo = d.url
+                      } else alert('Erro: ' + (d.error || 'unknown'))
+                    } catch (e: any) { alert('Erro ao enviar: ' + e.message) }
+                    setLogoUploading(false)
+                  }} />
+                </label>
+              </div>
+              <p className="text-xs text-dark-500 mt-1">PNG ou JPG, até 5MB. Essa imagem será usada como ícone do PWA.</p>
+            </div>
             <div><label className="text-xs text-dark-400 block mb-1">Taxa de Entrega (R$)</label><input className="input-dark" value={deliveryFee} onChange={e => setDeliveryFee(e.target.value)} placeholder="0,00" /></div>
             <div><label className="text-xs text-dark-400 block mb-1">WhatsApp</label><input className="input-dark" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} /></div>
             <div><label className="text-xs text-dark-400 block mb-1">Mínimo p/ Pedido (R$)</label><input className="input-dark" value={minOrder} onChange={e => setMinOrder(e.target.value)} /></div>

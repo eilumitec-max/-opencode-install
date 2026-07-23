@@ -8,10 +8,21 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   )
 
   const { data: tenant } = await supabase
-    .from('tenants').select('name, primary_color').eq('slug', params.slug).single()
+    .from('tenants').select('name, logo, primary_color').eq('slug', params.slug).single()
 
   const name = tenant?.name || params.slug
   const themeColor = tenant?.primary_color || '#7c3aed'
+  const logoUrl = tenant?.logo?.startsWith('http') ? tenant.logo : null
+
+  const icons: any[] = logoUrl
+    ? [
+        { src: logoUrl, sizes: '192x192', type: 'image/png' },
+        { src: logoUrl, sizes: '512x512', type: 'image/png' },
+      ]
+    : [
+        { src: `/app/${params.slug}/icon?size=192`, sizes: '192x192', type: 'image/svg+xml' },
+        { src: `/app/${params.slug}/icon?size=512`, sizes: '512x512', type: 'image/svg+xml' },
+      ]
 
   return NextResponse.json({
     name,
@@ -23,9 +34,6 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     orientation: 'portrait-primary',
     theme_color: themeColor,
     background_color: '#1a1a2e',
-    icons: [
-      { src: `/app/${params.slug}/icon?size=192`, sizes: '192x192', type: 'image/svg+xml' },
-      { src: `/app/${params.slug}/icon?size=512`, sizes: '512x512', type: 'image/svg+xml' },
-    ],
+    icons,
   })
 }
