@@ -22,6 +22,15 @@ import {
   fetchDeliveryZones, upsertDeliveryZone, deleteDeliveryZoneById,
 } from '@/lib/supabase-queries'
 
+const productIcons: Record<string, string> = {
+  'Leite Condensado': '🥛', 'Nutella': '🍫', 'Chocolate': '🍫', 'Caramelo': '🍯', 'Morango': '🍓',
+  'Doce de Leite': '🍮', 'Leite Ninho': '🥛', 'Creme de Avelã': '🌰', 'Banana': '🍌', 'Kiwi': '🥝',
+  'Uva': '🍇', 'Manga': '🥭', 'Abacaxi': '🍍', 'Maçã': '🍎', 'Pera': '🍐', 'Maracujá': '🟡',
+  'Coco': '🥥', 'Granola': '🥣', 'Paçoca': '🥜', 'Leite em Pó': '🫘', 'Castanha': '🌰',
+  'Confete': '🎊', 'Ovomaltine': '🧋', 'Amendoim': '🥜', 'Coco Ralado': '🥥', 'Chia': '🌱', "MM's": '🍬',
+}
+const getProductIcon = (name: string) => productIcons[name] || '📦'
+
 type Tab = 'dashboard' | 'products' | 'categories' | 'orders' | 'analytics' | 'settings' | 'sizes' | 'types' | 'payments' | 'delivery'
 
 export default function AdminPage() {
@@ -262,7 +271,7 @@ function DashboardTab({ tenant }: { tenant: Tenant }) {
           <div className="space-y-4">
             {tenant.products.filter(p => p.featured).slice(0, 4).map(product => (
               <div key={product.id} className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-dark-800 flex items-center justify-center text-lg shrink-0">{tenant.categories.find(c => c.name === product.category)?.icon || '📦'}</div>
+                <div className="w-12 h-12 rounded-xl bg-dark-800 flex items-center justify-center text-lg shrink-0">{getProductIcon(product.name)}</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">{product.name}</p>
                   <p className="text-xs text-dark-400">{product.sales} vendas este mês</p>
@@ -382,7 +391,7 @@ function ProductsTab({ tenant }: { tenant: Tenant }) {
                   <motion.tr key={product.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-dark-800 flex items-center justify-center text-base shrink-0">{tenant.categories.find(c => c.name === product.category)?.icon || '📦'}</div>
+                        <div className="w-10 h-10 rounded-lg bg-dark-800 flex items-center justify-center text-base shrink-0">{getProductIcon(product.name)}</div>
                         <div><p className="font-medium text-white">{product.name}</p></div>
                       </div>
                     </td>
