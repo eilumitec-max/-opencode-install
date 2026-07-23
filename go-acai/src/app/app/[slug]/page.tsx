@@ -473,7 +473,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
       <div className="min-h-screen" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
         <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl flex flex-col items-center justify-center p-8">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center space-y-6">
-            <div className="w-32 h-32 rounded-2xl flex items-center justify-center mx-auto overflow-hidden" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" /> : <span className="text-6xl">{tenant.logo}</span>}</div>
+            <div className="w-48 h-48 rounded-3xl flex items-center justify-center mx-auto overflow-hidden shadow-xl" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" /> : <span className="text-7xl">{tenant.logo}</span>}</div>
             <div>
               <h1 className="text-2xl font-bold font-display text-dark-900">Primeira vez aqui?</h1>
               <p className="text-dark-500 text-sm mt-1">Qual seu nome?</p>
@@ -526,7 +526,7 @@ function NameScreen({ tenant, customerName, setCustomerName, customerPhone, setC
     <div className="min-h-screen" style={{ backgroundColor: `${tenant.primaryColor}08` }}>
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl flex flex-col items-center justify-center p-8">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center space-y-6">
-          <div className="w-32 h-32 rounded-2xl flex items-center justify-center mx-auto overflow-hidden" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" /> : <span className="text-6xl">{tenant.logo}</span>}</div>
+          <div className="w-48 h-48 rounded-3xl flex items-center justify-center mx-auto overflow-hidden shadow-xl" style={{ backgroundColor: `${tenant.primaryColor}15` }}>{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" /> : <span className="text-7xl">{tenant.logo}</span>}</div>
           <div>
             <h1 className="text-2xl font-bold font-display text-dark-900">{tenant.name}</h1>
             <p className="text-dark-500 text-sm mt-1">Informe seu telefone para começar</p>

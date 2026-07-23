@@ -262,7 +262,7 @@ function DashboardTab({ tenant }: { tenant: Tenant }) {
           <div className="space-y-4">
             {tenant.products.filter(p => p.featured).slice(0, 4).map(product => (
               <div key={product.id} className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-dark-800 flex items-center justify-center overflow-hidden">{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt="" className="w-full h-full object-cover" /> : <span className="text-lg">{tenant.logo}</span>}</div>
+                <div className="w-12 h-12 rounded-xl bg-dark-800 flex items-center justify-center text-lg shrink-0">📦</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">{product.name}</p>
                   <p className="text-xs text-dark-400">{product.sales} vendas este mês</p>
@@ -382,7 +382,7 @@ function ProductsTab({ tenant }: { tenant: Tenant }) {
                   <motion.tr key={product.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-dark-800 flex items-center justify-center overflow-hidden">{tenant.logo.startsWith('http') ? <img src={tenant.logo} alt="" className="w-full h-full object-cover" /> : <span className="text-lg">{tenant.logo}</span>}</div>
+                        <div className="w-10 h-10 rounded-lg bg-dark-800 flex items-center justify-center text-base shrink-0">📦</div>
                         <div><p className="font-medium text-white">{product.name}</p></div>
                       </div>
                     </td>
